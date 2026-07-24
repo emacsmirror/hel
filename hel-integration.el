@@ -406,6 +406,16 @@ If cursor is in read-only area, jump to prompt instead of deleting."
 (hel-advice-add 'previous-error     :around #'hel-jump-command-a)
 (hel-advice-add 'compile-goto-error :around #'hel-jump-command-a)
 
+;;;; completion-preview
+;;
+;; https://eshelyaron.com/posts/2023-11-17-completion-preview-in-emacs.html
+
+(with-eval-after-load 'completion-preview
+  (add-hook 'hel-insert-state-exit-hook 'completion-preview-hide)
+  (hel-keymap-set completion-preview-active-mode-map
+    "C-j"  'completion-preview-next-candidate
+    "C-k"  'completion-preview-prev-candidate))
+
 ;;;; wgrep
 
 (hel-advice-add 'wgrep-change-to-wgrep-mode :after #'hel-switch-to-initial-state)
