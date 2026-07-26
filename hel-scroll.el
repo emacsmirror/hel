@@ -109,10 +109,10 @@ a fully consistent state, so ending mid-way is safe."
                 (cond
                  ((input-pending-p)
                   (let ((event (read-event)))
-                    (-if-let* ((allow-extend?)
+                    (-if-let* ((extend? allow-extend?)
                                (cmd (key-binding (vector event) t))
-                               ((symbolp cmd))
-                               ((get cmd 'hel-scroll))
+                               (symbol? (symbolp cmd))
+                               (scroll? (get cmd 'hel-scroll))
                                ((delta duration) (funcall cmd)))
                         ;; Extend the TARGET and restart the pulse from the
                         ;; current position.
