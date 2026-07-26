@@ -161,7 +161,7 @@ Run search session if REGEXP is provided."
                :buffer-hash (buffer-hash))))
     (when regexp
       (setf (hel-search-session-timer self)
-            (run-at-time nil nil 'hel-search-session--scan-window self)))
+            (run-at-time nil nil #'hel-search-session--scan-window self)))
     self))
 
 (defun hel-search-session-cleanup (self)
@@ -218,7 +218,7 @@ Run search session if REGEXP is provided."
                (cl-callf nreverse window-overlays)
                (setf (hel-search-session-timer self)
                      (run-at-time hel-lazy-highlight-interval nil
-                                  'hel-search-session--scan-buffer
+                                  #'hel-search-session--scan-buffer
                                   self window-overlays))))))))
 
 (defun hel-search-session--scan-buffer (self window-overlays)
@@ -264,7 +264,7 @@ Run search session if REGEXP is provided."
             ;; Limit hit: reschedule the next cycle.
             (setf (hel-search-session-timer self)
                   (run-at-time hel-lazy-highlight-interval nil
-                               'hel-search-session--scan-buffer
+                               #'hel-search-session--scan-buffer
                                self window-overlays))
           ;; Search finished.
           (setf (hel-search-session-timer self) nil
@@ -397,7 +397,7 @@ Return nil when no match exists."
           (setq hel-search--total total
                 hel-search--current (-some-> (hel-search-session--current-match ss (point))
                                       (1+)))
-          (add-hook 'post-command-hook 'hel-search--clean-current 95 t))
+          (add-hook 'post-command-hook #'hel-search--clean-current 95 t))
       ;; else
       (setq hel-search--total nil
             hel-search--current nil))
@@ -410,7 +410,7 @@ Return nil when no match exists."
             (ov (elt overlays (1- current)))
             ((<= (overlay-start ov) (point) (overlay-end ov))))
       nil
-    (remove-hook 'post-command-hook 'hel-search--clean-current t)
+    (remove-hook 'post-command-hook #'hel-search--clean-current t)
     (setq hel-search--current nil)
     (force-mode-line-update)))
 
@@ -476,7 +476,7 @@ Return nil when no match exists."
                (->> opened-overlays
                     (-separate (lambda (ov)
                                  (and (< (overlay-start ov) (point))
-			              (<= (point) (overlay-end ov))))))]
+                                      (<= (point) (overlay-end ov))))))]
           (-each open #'hel-open-overlay)
           (-each close #'hel-close-temporary-opened-overlay))
         ss))))
@@ -493,7 +493,7 @@ Return nil when no match exists."
         hel-search--session (hel-search-interactively "/" 1)
         hel-search--direction 1
         this-command 'hel-search-forward)
-  (add-hook 'pre-command-hook 'hel-search--clean-current 95 t))
+  (add-hook 'pre-command-hook #'hel-search--clean-current 95 t))
 
 ;; ?
 (hel-define-command hel-search-backward ()
@@ -507,7 +507,7 @@ Return nil when no match exists."
         hel-search--session (hel-search-interactively "?" -1)
         hel-search--direction -1
         this-command 'hel-search-backward)
-  (add-hook 'pre-command-hook 'hel-search--clean-current 95 t))
+  (add-hook 'pre-command-hook #'hel-search--clean-current 95 t))
 
 ;; n
 (hel-define-command hel-search-next (count)
@@ -543,7 +543,7 @@ Return nil when no match exists."
               (hel-set-region start end region-dir)
               (-each closed-overlays #'hel-open-overlay)
               (setq hel-search--current (if index (1+ index)))
-              (add-hook 'post-command-hook 'hel-search--clean-current 95 t))))))))
+              (add-hook 'post-command-hook #'hel-search--clean-current 95 t))))))))
 
 ;; N
 (hel-define-command hel-search-previous (count)
@@ -828,7 +828,7 @@ If INVERT is non-nil — remove selections that match regexp."
 ;; f
 (hel-define-command hel-find-char-forward ()
   "Prompt user for CHAR and move to the next occurrence of it.
-Right after this command while hints are active, you can use `n' and `N'
+Right after this command while hints are active, you can use n and N
 keys to repeat motion forward/backward."
   :multiple-cursors t
   :merge-selections hel--extend-selection
@@ -839,7 +839,7 @@ keys to repeat motion forward/backward."
 ;; F
 (hel-define-command hel-find-char-backward ()
   "Prompt user for CHAR and move to the previous occurrence of it.
-Right after this command while hints are active, you can use `n' and `N'
+Right after this command while hints are active, you can use n and N
 keys to repeat motion forward/backward."
   :multiple-cursors t
   :merge-selections hel--extend-selection
@@ -850,7 +850,7 @@ keys to repeat motion forward/backward."
 ;; t
 (hel-define-command hel-till-char-forward ()
   "Prompt user for CHAR and move before the next occurrence of it.
-Right after this command while hints are active, you can use `n' and `N'
+Right after this command while hints are active, you can use n and N
 keys to repeat motion forward/backward."
   :multiple-cursors t
   :merge-selections hel--extend-selection
@@ -860,15 +860,14 @@ keys to repeat motion forward/backward."
 
 ;; T
 (hel-define-command hel-till-char-backward ()
-  "Prompt user for CHAR and move before the prevous occurrence of it.
-Right after this command while hints are active, you can use `n' and `N'
+  "Prompt user for CHAR and move before the previous occurrence of it.
+Right after this command while hints are active, you can use n and N
 keys to repeat motion forward/backward."
   :multiple-cursors t
   :merge-selections hel--extend-selection
   (interactive)
   (hel-maybe-set-mark)
   (hel-find-char (read-char "T" t) -1 t))
-
 
 (defun hel-find-char (char direction exclusive?)
   (let* ((case (let (case-fold-search)

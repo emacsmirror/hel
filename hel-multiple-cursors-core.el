@@ -55,7 +55,7 @@ action. The step is terminated with `hel--single-undo-step-end'."
               (hel-undo-command-p this-command)
               (eq buffer-undo-list t))
     (setq hel--in-single-undo-step t)
-    (unless (null (car-safe buffer-undo-list))
+    (when (car-safe buffer-undo-list)
       (undo-boundary))
     (setq hel--undo-list-pointer buffer-undo-list)
     (hel--push-undo-boundary-1)))
@@ -435,7 +435,7 @@ CURSORS-POSITIONS is an alist as returned by `hel-cursors-positions'."
     (-lambda ((id point mark))
       (pcase id
         (0 (hel-set-region mark point))
-        (_ (let ((mark-active (not (null mark))))
+        (_ (let ((mark-active (if mark t)))
              (if-let* ((cursor (gethash id hel--cursors-table)))
                  (hel-move-fake-cursor cursor point mark :update)
                (hel--create-fake-cursor-1 id point mark)))))))

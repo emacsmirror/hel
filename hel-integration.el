@@ -258,7 +258,7 @@ C-i and RET from C-m."
                        (2 'font-lock-variable-name-face nil t)))))
 
 ;; `emacs-lisp-mode' is inherited from `lisp-data-mode'.
-(add-hook 'lisp-data-mode-hook 'hel--emacs-lisp-mode-h)
+(add-hook 'lisp-data-mode-hook #'hel--emacs-lisp-mode-h)
 
 (defun hel--emacs-lisp-mode-h ()
   ;; Add legacy quotes marks to Hel surround functionality.
@@ -727,7 +727,7 @@ field widgets (like `Custom-mode' or `notmuch-hello-mode')."
 
 (with-eval-after-load 'corfu
   ;; Close corfu popup on Insert state exit.
-  (add-hook 'hel-insert-state-exit-hook 'corfu-quit))
+  (add-hook 'hel-insert-state-exit-hook #'corfu-quit))
 
 ;;;; consult
 
@@ -762,10 +762,11 @@ field widgets (like `Custom-mode' or `notmuch-hello-mode')."
 
 ;;;; embark
 
-(declare-function embark--targets "embark")
-(declare-function embark--act     "embark")
-(declare-function embark--restart "embark")
-(declare-function embark--confirm "embark")
+;; The "ext:" prefix marks an optional external package.
+(declare-function embark--targets "ext:embark")
+(declare-function embark--act     "ext:embark")
+(declare-function embark--restart "ext:embark")
+(declare-function embark--confirm "ext:embark")
 
 (defvar hel--embark-action nil
   "Embark action chosen for the real cursor.")

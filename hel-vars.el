@@ -158,8 +158,8 @@ Hel is in Emacs state. All other attributes are ignored."
   :set (lambda (symbol value)
          (set-default symbol value)
          (if (and hel-mode value)
-             (add-hook 'minibuffer-setup-hook 'hel-local-mode)
-           (remove-hook 'minibuffer-setup-hook 'hel-local-mode))))
+             (add-hook 'minibuffer-setup-hook #'hel-local-mode)
+           (remove-hook 'minibuffer-setup-hook #'hel-local-mode))))
 
 (defcustom hel-esc-delay 0.01
   "Seconds to wait for another key after a terminal Esc keypress.
@@ -526,7 +526,7 @@ Default value is 0 - scroll half the screen.")
 
 (defvar hel-window-map (make-sparse-keymap)
   "Keymap for window-related commands.")
-(fset 'hel-window-map hel-window-map)
+(defalias 'hel-window-map hel-window-map)
 
 (defvar hel-regex-history nil
   "List with used regexp patterns.")

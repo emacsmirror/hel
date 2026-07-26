@@ -311,11 +311,11 @@ If no sentence at point select COUNT previous sentences."
   (ignore-errors
     (cond
      ;; before open bracket
-     ((and (/= (point) (point-max))
+     ((and (not (eobp))
            (eq 4 (syntax-class (syntax-after (point)))))
       (forward-list 1))
      ;; after close bracket
-     ((and (/= (point) (point-min))
+     ((and (not (bobp))
            (eq 5 (syntax-class (syntax-after (1- (point))))))
       (forward-list -1))
      (t

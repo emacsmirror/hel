@@ -17,16 +17,20 @@
 (require 'hel-vars)
 (require 'hel-lib)
 
+;;;; Define advices
+
 (cl-defmacro hel-define-advice (symbol (how lambda-list &optional (name 'hel))
                                        &rest body)
   "Wrapper around `define-advice' that automatically add/remove advice
 when `hel-mode' is toggled on or off."
-  (declare (indent 2) (doc-string 3) (debug (sexp sexp def-body)))
+  (declare (indent 2)
+           (doc-string 3)
+           (debug (sexp sexp def-body)))
   (let ((advice (intern (format "%s@%s" symbol name))))
     `(prog1 (defun ,advice ,lambda-list ,@body)
        (cl-pushnew '(,symbol ,how ,advice) hel--advices :test #'equal)
        (when hel-mode
-         (advice-add ',symbol ,how ',advice)))))
+         (advice-add ',symbol ,how #',advice)))))
 
 (defmacro hel-advice-add (symbol how function)
   "Wrapper around `advice-add' that automatically add/remove advice
@@ -37,6 +41,8 @@ when `hel-mode' is toggled on or off"
      (cl-pushnew (list ,symbol ,how ,function) hel--advices :test #'equal)
      (when hel-mode
        (advice-add ,symbol ,how ,function))))
+
+;;;; Define command
 
 (defmacro hel-define-command (command args &rest body)
   "Define Hel COMMAND.

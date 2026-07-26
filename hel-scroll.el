@@ -24,7 +24,7 @@
 ;;; Animation
 
 (defvar hel--in-animate-scroll nil
-  "Non-nil is inside `hel--animate-scroll' loop.")
+  "Non-nil inside `hel--animate-scroll' loop.")
 
 (defun hel-smooth-scroll (delta duration)
   "Smoothly scroll the view by DELTA pixels over DURATION seconds.

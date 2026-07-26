@@ -638,10 +638,10 @@ This is actually refactored `move-beginning-of-line' command."
         (line-move (1- count) t)))
     ;; Move to beginning-of-line, ignoring fields and invisible text.
     (let ((inhibit-field-text-motion t))
-      (goto-char (line-beginning-position))
+      (beginning-of-line)
       (while (and (not (bobp)) (invisible-p (1- (point))))
         (goto-char (previous-char-property-change (point)))
-        (goto-char (line-beginning-position))))
+        (beginning-of-line)))
     ;; Now find first visible char in the line.
     (while (and (< (point) init-point)
                 (invisible-p (point)))
@@ -1512,8 +1512,8 @@ See `isearch-open-necessary-overlays'."
 
 ;;; Advices
 
-(declare-function hel-extend-selection "hel-commands")
-(declare-function hel-insert-state "hel-core")
+(declare-function hel-extend-selection "hel-commands" (arg) t)
+(declare-function hel-insert-state "hel-core" (&optional arg) t)
 
 (defun hel-keep-selection-a (command &rest args)
   "Keep region active, disable extending selection (`v' key)."
