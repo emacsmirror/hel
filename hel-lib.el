@@ -256,7 +256,7 @@ It is suitable to restore region with `hel-set-region':
 
   (let ((region (hel-region)))
     ...
-    (apply #'hel-set-region region))"
+    (apply #\='hel-set-region region))"
   (if (use-region-p)
       (list (region-beginning) (region-end) (hel-region-direction))))
 
@@ -1301,7 +1301,8 @@ forward (or BACKWARD) and jump to new top location."
 This function destructively modify RING and should be used the following way:
 `(setq RING (hel-rotate-ring RING))'
 
-RING should be a list like `mark-ring' and not the ring structure from `ring.el'."
+RING should be a list like `mark-ring', not the ring structure from
+`ring.el'."
   (if backward-p
       (nconc (last ring) (nbutlast ring))
     (nconc (cdr ring) (list (car ring)))))

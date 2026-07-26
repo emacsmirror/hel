@@ -348,7 +348,7 @@ then one cursor in the buffer.")
          :remove (lambda ()
                    (-when-let ((beg . end) (hel-bounds-of-quoted-at-point ?\"))
                      (list beg (1+ beg) (1- end) end)))))
-  "Association list with (KEY . SPEC) elements for Hel surrounding functionality.
+  "Alist of (KEY . SPEC) elements for Hel surround functionality.
 
 This variable is buffer-local so that users can modify it from major-mode hooks.
 
@@ -359,7 +359,8 @@ KEY is a character, SPEC is a plist with ideologically 2 group of keys:
    `:insert'    Cons cell (LEFT . RIGHT) of strings, or a function that returns
               such cons cell.
 
-2. What \"md\" (`hel-surround-delete') and \"mr\" (`hel-surround-change') will remove.
+2. What \"md\" (`hel-surround-delete') and \"mr\" (`hel-surround-change')
+   will remove.
 
    Either a group of keys:
 

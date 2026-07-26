@@ -780,7 +780,7 @@ field widgets (like `Custom-mode' or `notmuch-hello-mode')."
 (hel-advice-add 'embark-dwim :around 'hel-embark-act-a)
 
 (defun hel-embark-act-a (orig-fun &rest args)
-  "Around advice for `embark-act' and `embark-dwim' fanning them out to all cursors.
+  "Around advice for `embark-act'/`embark-dwim' fanning them out to all cursors.
 For the real cursor, forget any previously recorded action and run
 ORIG-FUN normally (which records the chosen action, see the advice on
 `embark--act').  When Hel replays the command for a fake cursor, skip

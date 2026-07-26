@@ -84,12 +84,12 @@ This function modifies the match data that `match-beginning',
   "Highlight all submatches in MATCH-DATA.
 Return list with overlays. Reuse OVERLAYS if provided.
 
-The faces used to do the highlights are named `isearch-group-1', `isearch-group-2',
-etc. (By default, only these 2 are defined.) When there are more matches than
-faces, then faces are reused from the beginning, in a cyclical manner, so the
-`isearch-group-1' face is isreused for the third match. If you want to use more
-distinctive colors, you can define more of these faces using the same numbering
-scheme."
+The faces used to do the highlights are named `isearch-group-1',
+`isearch-group-2', etc. (By default, only these 2 are defined.) When there
+are more matches than faces, then faces are reused from the beginning, in a
+cyclical manner, so the `isearch-group-1' face is reused for the third
+match. If you want to use more distinctive colors, you can define more of
+these faces using the same numbering scheme."
   (setq match-data (-partition 2 match-data))
   (prog1 (cons
           ;; Whole match
