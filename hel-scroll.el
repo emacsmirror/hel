@@ -295,7 +295,7 @@ backward instead."
     (unless (and beginning-of-window?
                  hel-multiple-cursors-mode)
       (if (= count 1)
-          (progn
+          (unless hel--in-animate-scroll
             (if beginning-of-window? (hel-maybe-deactivate-mark))
             (let ((scroll-preserve-screen-position nil))
               (scroll-up 1)))
@@ -319,7 +319,7 @@ backward instead."
     (unless (and end-of-window?
                  hel-multiple-cursors-mode)
       (if (= count 1)
-          (progn
+          (unless hel--in-animate-scroll
             (if end-of-window? (hel-maybe-deactivate-mark))
             (let ((scroll-preserve-screen-position nil))
               (scroll-down 1)))
