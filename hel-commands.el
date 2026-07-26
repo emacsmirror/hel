@@ -527,11 +527,14 @@ depending on DIRECTION."
   ;; Remain only one cursor on each line.
   (when hel-multiple-cursors-mode
     (hel-with-real-cursor-as-fake
-      ;; Line numbers start from 1, so 0 as initial value is out of scope.
+      ;; Lines are identified by their beginning position. Buffer positions
+      ;; start from 1, so 0 as initial value is out of scope.
       (let ((current-line 0))
         (-each (hel-all-fake-cursors :sort)
           (lambda (cursor)
-            (let ((line (line-number-at-pos (overlay-get cursor 'point))))
+            (let ((line (save-excursion
+                          (goto-char (overlay-get cursor 'point))
+                          (line-beginning-position))))
               (if (= line current-line)
                   (hel--delete-fake-cursor cursor)
                 (setq current-line line))))))))
@@ -1016,9 +1019,11 @@ When called interactively — toggle extending selection."
     (hel-save-window-scroll
       (dolist (cursors (->> (hel-all-fake-cursors :sort)
                             ;; split cursors into groups by line
+                            ;; (lines are identified by their beginning position)
                             (-partition-by (lambda (cursor)
-                                             (-> (overlay-get cursor 'point)
-                                                 (line-number-at-pos))))
+                                             (save-excursion
+                                               (goto-char (overlay-get cursor 'point))
+                                               (line-beginning-position))))
                             ;; Transpose columns and rows to align all first
                             ;; cursors in each line, than all second and so on.
                             (hel-transpose)))

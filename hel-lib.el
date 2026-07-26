@@ -149,15 +149,17 @@ logical line on desired end of the region."
                   (and (progn (goto-char beg) (bolp))
                        (progn (goto-char end) (bolp))))
                  ((<= direction 0)
-                  (and (progn (goto-char beg) (bolp))
-                       ;; at least one full line is selected
-                       (< 0 (- (line-number-at-pos end)
-                               (line-number-at-pos beg)))))
+                  (goto-char beg)
+                  (and (bolp)
+                       ;; at least one full line is selected:
+                       ;; point is at BEG, END should be on a later line
+                       (< (line-end-position) end)))
                  (t
-                  (and (progn (goto-char end) (bolp))
-                       ;; at least one full line is selected
-                       (< 0 (- (line-number-at-pos end)
-                               (line-number-at-pos beg))))))))))
+                  (goto-char end)
+                  (and (bolp)
+                       ;; at least one full line is selected:
+                       ;; point is at END, BEG should be on an earlier line
+                       (< beg (line-beginning-position)))))))))
 
 (defun hel-visual-lines-p ()
   "Return t if active region spawns visual lines."
