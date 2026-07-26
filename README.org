@@ -66,7 +66,7 @@ deserves credit.
 #+begin_quote
 [!TIP]
 If you want a Spacemacs / Doom like configuration framework but for Hel
-try [[https://github.com/anuvyklack/helheim-emacs][Helheim Emacs]].
+try [[https://github.com/helheim-emacs/helheim][Helheim Emacs]].
 #+end_quote
 
 Hel is not yet on MELPA. You can install it directly from Github.
@@ -88,7 +88,7 @@ This is the most minimal example of the =init.el= file:
 (use-package ultra-scroll :ensure t)
 
 (use-package hel
-  :vc (:url "https://github.com/anuvyklack/hel.git" :rev "main")
+  :vc (:url "https://github.com/helheim-emacs/hel.git" :rev "main")
   :custom (inhibit-startup-screen t)
   :config (hel-mode))
 
@@ -103,7 +103,7 @@ This is the most minimal example of the =init.el= file:
 (elpaca 'pcre2el)
 (elpaca 'ultra-scroll)
 
-(elpaca '(hel :host github :repo "anuvyklack/hel")
+(elpaca '(hel :host github :repo "helheim-emacs/hel")
   (setopt inhibit-startup-screen t)
   (hel-mode))
 #+end_src
@@ -116,7 +116,7 @@ This is the most minimal example of the =init.el= file:
 (straight-use-package 'pcre2el)
 (straight-use-package 'ultra-scroll)
 
-(straight-use-package '(hel :host github :repo "anuvyklack/hel"))
+(straight-use-package '(hel :host github :repo "helheim-emacs/hel"))
 (setopt inhibit-startup-screen t)
 (hel-mode)
 #+end_src
@@ -206,12 +206,12 @@ alternatives in Emacs.
 
 ** Extensions
 
-- [[https://github.com/anuvyklack/hel-leader][hel-leader]] — use =Space= as a leader key
-- [[https://github.com/anuvyklack/hel-org][hel-org]] — for [[https://orgmode.org/][Org-mode]]
-- [[https://github.com/anuvyklack/hel-paredit][hel-paredit]] — structural editing for S-expressions
-- [[https://github.com/anuvyklack/hel-ghostel][hel-ghostel]] — for [[https://github.com/dakra/ghostel][ghostel]] terminal
-- [[https://github.com/anuvyklack/hel-vterm][hel-vterm]] — for [[https://github.com/akermu/emacs-libvterm][vterm]] terminal emulator
-- [[https://github.com/anuvyklack/hel-agent-shell][hel-agent-shell]] — for [[https://github.com/xenodium/agent-shell][agent-shell]]
+- [[https://github.com/helheim-emacs/hel-leader][hel-leader]] — use =Space= as a leader key
+- [[https://github.com/helheim-emacs/hel-collection][hel-collection]] — keybindings for built-in and third-party packages
+- [[https://github.com/helheim-emacs/hel-org][hel-org]] — for [[https://orgmode.org/][Org-mode]]
+- [[https://github.com/helheim-emacs/hel-paredit][hel-paredit]] — structural editing for S-expressions
+- [[https://github.com/helheim-emacs/hel-ghostel][hel-ghostel]] — for [[https://github.com/dakra/ghostel][ghostel]] terminal
+- [[https://github.com/helheim-emacs/hel-vterm][hel-vterm]] — for [[https://github.com/akermu/emacs-libvterm][vterm]] terminal emulator
 
 ** Tips
 

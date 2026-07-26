@@ -75,9 +75,9 @@
 
 ** Fixed
 
-- Compatibility issue with Emacs 31. ([[https://github.com/anuvyklack/hel/issues/17][#17]])
+- Compatibility issue with Emacs 31. ([[https://github.com/helheim-emacs/hel/issues/17][#17]])
 
-- =Esc= key in text terminal. ([[https://github.com/anuvyklack/hel/issues/1][#1]])
+- =Esc= key in text terminal. ([[https://github.com/helheim-emacs/hel/issues/1][#1]])
 
 * [0.10.0]
 ** Added
