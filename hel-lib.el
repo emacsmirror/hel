@@ -655,7 +655,7 @@ This is actually refactored `move-beginning-of-line' command."
 
 ;;;; `hel-word'
 
-(defun forward-hel-word (&optional count)
+(defun hel--forward-word (&optional count)
   "Move point COUNT words forward (backward if COUNT is negative).
 Returns the count of word left to move, positive or negative depending
 on sign of COUNT.
@@ -672,9 +672,11 @@ Word is:
               (word-combining-categories  hel-cjk-word-combining-categories))
           (forward-word dir)))))
 
+(put 'hel-word 'forward-op #'hel--forward-word)
+
 ;;;; `hel-WORD'
 
-(defun forward-hel-WORD (&optional count)
+(defun hel--forward-WORD (&optional count)
   "Move point COUNT WORDs forward (backward if COUNT is negative).
 Returns the count of WORD left to move, positive or negative depending
 on sign of COUNT.
@@ -686,9 +688,11 @@ WORD is any space separated sequence of characters."
     (unless (hel-line-boundary-p dir)
       (hel-skip-chars "^\n\r\t\f " dir))))
 
+(put 'hel-WORD 'forward-op #'hel--forward-WORD)
+
 ;;;; `hel-sentence'
 
-(defun forward-hel-sentence (&optional count)
+(defun hel--forward-sentence (&optional count)
   "Move point COUNT sentences forward (backward if COUNT is negative).
 Returns then count of sentences left to move, positive of negative depending
 on sign of COUNT.
@@ -697,9 +701,11 @@ What is sentence is defined by `forward-sentence-function'."
   (hel-motion-loop (dir (or count 1))
     (ignore-errors (forward-sentence dir))))
 
+(put 'hel-sentence 'forward-op #'hel--forward-sentence)
+
 ;;;; `hel-paragraph'
 
-(defun forward-hel-paragraph (&optional count)
+(defun hel--forward-paragraph (&optional count)
   "Move point COUNT paragraphs forward (backward if COUNT is negative).
 Returns then count of paragraphs left to move, positive of negative depending
 on sign of COUNT."
@@ -711,21 +717,30 @@ on sign of COUNT."
              (start-of-paragraph-text)
              (beginning-of-line))))))
 
+(put 'hel-paragraph 'forward-op #'hel--forward-paragraph)
+
 ;;;; `hel-function'
 
-(defun forward-hel-function (&optional count)
+(defun hel--forward-function (&optional count)
   "Move point COUNT functions forward (backward if COUNT is negative).
 Returns then count of functions left to move, positive of negative depending
 on sign of COUNT."
   (hel-motion-loop (dir (or count 1))
     (if (< dir 0) (beginning-of-defun) (end-of-defun))))
 
+(put 'hel-function 'forward-op #'hel--forward-function)
+
 ;;;; `hel-sexp'
 
-(defun forward-hel-sexp (&optional count)
+(defun hel--forward-sexp (&optional count)
+  "Move point COUNT sexps forward (backward if COUNT is negative).
+Returns the count of sexps left to move, positive or negative depending
+on sign of COUNT."
   (hel-motion-loop (dir (or count 1))
     (ignore-errors
       (forward-sexp dir))))
+
+(put 'hel-sexp 'forward-op #'hel--forward-sexp)
 
 (defun hel-forward-sexp-only (&optional count)
   "Default value for `forward-sexp-function'.
