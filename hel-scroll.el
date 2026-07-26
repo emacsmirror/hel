@@ -15,11 +15,21 @@
 (require 'hel-vars)
 (require 'hel-lib)
 (require 'hel-multiple-cursors-core)
+(require 'hel-core)
 (require 'ultra-scroll)
 
-;; XXX: Necessary for smooth scrolling to work.
-(setq scroll-conservatively 101
-      scroll-margin 0)
+;;; Scroll settings
+
+(defun hel--setup-scroll-settings-h ()
+  "Set the requires scroll settings while `hel-mode' is active."
+  (if hel-mode
+      (setq scroll-conservatively 101
+            scroll-margin 0)
+    ;; else
+    (setq scroll-conservatively (custom--standard-value 'scroll-conservatively)
+          scroll-margin (custom--standard-value 'scroll-margin))))
+
+(add-hook 'hel-mode-hook #'hel--setup-scroll-settings-h)
 
 ;;; Animation
 
