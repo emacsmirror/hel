@@ -438,7 +438,7 @@ use it."
   "C-x" #'scratch-buffer
   "C-z" #'bury-buffer)
 
-(when (<= 30 emacs-major-version)
+(when (fboundp 'toggle-window-dedicated) ;; Emacs 30.1
   (hel-keymap-set hel-window-map
     "p"   '("pin buffer to window" . toggle-window-dedicated)
     "C-p" #'toggle-window-dedicated))

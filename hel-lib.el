@@ -459,7 +459,8 @@ REST contains all other elements."
 
 (cl-defun hel-hide-cursor (&optional (window (selected-window)))
   "Hide the cursor in WINDOW and return a function that restores it."
-  (cond ((fboundp 'set-window-cursor-type) ;; Emacs 31
+  (cond ((and (fboundp 'window-cursor-type) ;; Emacs 30.1
+              (fboundp 'set-window-cursor-type))
          (let ((orig (window-cursor-type window)))
            (set-window-cursor-type window nil)
            (lambda () (set-window-cursor-type window orig))))

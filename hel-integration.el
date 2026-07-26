@@ -594,7 +594,7 @@ If cursor is in read-only area, jump to prompt instead of deleting."
   ")"   #'hel-mark-function-forward
   "("   #'hel-mark-function-backward)
 
-(when (<= 30 emacs-major-version)
+(when (fboundp 'prog-fill-reindent-defun) ;; Emacs 30.1
   (hel-keymap-set prog-mode-map :state 'normal
     "g q" #'prog-fill-reindent-defun))
 
