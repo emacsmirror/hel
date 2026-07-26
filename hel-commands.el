@@ -171,7 +171,8 @@ Push mark at previous position, unless extending selection."
   (hel-push-point)
   (hel-maybe-deactivate-mark)
   (if count
-      (goto-line (prefix-numeric-value count))
+      (progn (goto-char (point-min))
+             (forward-line (1- (prefix-numeric-value count))))
     (goto-char (point-max))))
 
 ;; gh
