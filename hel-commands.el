@@ -850,7 +850,7 @@ forward)."
   "Invert case of characters."
   :multiple-cursors t
   (interactive "*")
-  (if-let ((region (hel-region)))
+  (if-let* ((region (hel-region)))
       (-let (((beg end) region)
              (deactivate-mark nil))
         (hel-invert-case-in-region beg end)
@@ -1382,8 +1382,8 @@ already there."
                (progn
                  (goto-char thing-beg)
                  (with-restriction (line-beginning-position) (line-end-position)
-                   (-if-let ((space-beg . _)
-                             (hel-bounds-of-complement-of-thing-at-point thing))
+                   (if-let* ((space-beg
+                              (car (hel-bounds-of-complement-of-thing-at-point thing))))
                        (cons space-beg thing-end))))
                (cons thing-beg thing-end))]
       (hel-set-region beg end))))
@@ -1437,10 +1437,10 @@ already there."
                         ;; Exclude comments that belongs to the next function.
                         (goto-char space-end)
                         (car (bounds-of-thing-at-point 'hel-paragraph)))))
-        (-if-let ((space-beg . _)
-                  (progn
-                    (goto-char thing-beg)
-                    (hel-bounds-of-complement-of-thing-at-point thing)))
+        (if-let* ((space-beg
+                   (progn
+                     (goto-char thing-beg)
+                     (car (hel-bounds-of-complement-of-thing-at-point thing)))))
             (setq beg space-beg
                   end thing-end))
         (setq beg (progn
@@ -1504,8 +1504,8 @@ already there."
   :multiple-cursors t
   :merge-selections t
   (interactive)
-  (-when-let ((_ beg end _) (hel-4-bounds-of-brackets-at-point ?\( ?\)))
-    (hel-set-region beg end)))
+  (pcase (hel-4-bounds-of-brackets-at-point ?\( ?\))
+    (`(,_ ,beg ,end ,_) (hel-set-region beg end))))
 
 ;; ma( ma)
 (hel-define-command hel-mark-a-paren ()
@@ -1520,8 +1520,8 @@ already there."
   :multiple-cursors t
   :merge-selections t
   (interactive)
-  (-when-let ((_ beg end _) (hel-4-bounds-of-brackets-at-point ?\[ ?\]))
-    (hel-set-region beg end)))
+  (pcase (hel-4-bounds-of-brackets-at-point ?\[ ?\])
+    (`(,_ ,beg ,end ,_) (hel-set-region beg end))))
 
 ;; ma[ ma]
 (hel-define-command hel-mark-a-bracket ()
@@ -1536,8 +1536,8 @@ already there."
   :multiple-cursors t
   :merge-selections t
   (interactive)
-  (-when-let ((_ beg end _) (hel-4-bounds-of-brackets-at-point ?{ ?}))
-    (hel-set-region beg end)))
+  (pcase (hel-4-bounds-of-brackets-at-point ?{ ?})
+    (`(,_ ,beg ,end ,_) (hel-set-region beg end))))
 
 ;; ma{ ma}
 (hel-define-command hel-mark-a-curly ()
@@ -1552,8 +1552,8 @@ already there."
   :multiple-cursors t
   :merge-selections t
   (interactive)
-  (-when-let ((_ beg end _) (hel-4-bounds-of-brackets-at-point ?< ?>))
-    (hel-set-region beg end)))
+  (pcase (hel-4-bounds-of-brackets-at-point ?< ?>)
+    (`(,_ ,beg ,end ,_) (hel-set-region beg end))))
 
 ;; ma< ma>
 (hel-define-command hel-mark-an-angle ()

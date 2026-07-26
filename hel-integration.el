@@ -298,8 +298,8 @@ C-i and RET from C-m."
   :multiple-cursors t
   :merge-selections t
   (interactive)
-  (-when-let ((_ beg end _) (hel-surround-4-bounds-at-point "`" "'"))
-    (hel-set-region beg end)))
+  (pcase (hel-surround-4-bounds-at-point "`" "'")
+    (`(,_ ,beg ,end ,_) (hel-set-region beg end))))
 
 (hel-define-command hel-mark-a-legacy-quoted ()
   :multiple-cursors t
@@ -409,6 +409,8 @@ If cursor is in read-only area, jump to prompt instead of deleting."
 ;;;; completion-preview
 ;;
 ;; https://eshelyaron.com/posts/2023-11-17-completion-preview-in-emacs.html
+
+(defvar completion-preview-active-mode-map)
 
 (with-eval-after-load 'completion-preview
   (add-hook 'hel-insert-state-exit-hook 'completion-preview-hide)

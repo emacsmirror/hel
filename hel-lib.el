@@ -374,7 +374,7 @@ right after the point."
           ;; starters and enders, because `syntax-ppss' does not yet know if
           ;; we are inside a comment or not (e.g. / can be a division or
           ;; comment starter...).
-          (when-let ((s (car (syntax-after pos))))
+          (when-let* ((s (car (syntax-after pos))))
             (or
              ;; First char of 2 chars comment opener
              (and (/= 0 (logand (ash 1 16) s))
@@ -730,7 +730,7 @@ on sign of COUNT."
   "Default value for `forward-sexp-function'.
 Unlike `forward-sexp-default-function' this one doesn't move to the end of the
 buffer if no sexp forward."
-  (when-let ((pos (scan-sexps (point) count)))
+  (when-let* ((pos (scan-sexps (point) count)))
     (goto-char pos)
     (if (< count 0) (backward-prefix-chars))))
 
@@ -795,8 +795,8 @@ such as `paragraph', `hel-function'."
                      (cons thing-beg space-end)))
                (progn
                  (goto-char thing-beg)
-                 (-if-let ((space-beg . _)
-                           (hel-bounds-of-complement-of-thing-at-point thing))
+                 (if-let* ((space-beg
+                            (car (hel-bounds-of-complement-of-thing-at-point thing))))
                      (cons space-beg thing-end)))
                (cons thing-beg thing-end))))
     (hel-set-region beg end (hel-sign count))))
@@ -894,8 +894,8 @@ If no THING at point select COUNT following THINGs."
                  (with-restriction
                      (save-excursion (back-to-indentation) (point))
                      (line-end-position)
-                   (-if-let ((space-beg . _)
-                             (hel-bounds-of-complement-of-thing-at-point thing))
+                   (if-let* ((space-beg
+                              (car (hel-bounds-of-complement-of-thing-at-point thing))))
                        (cons space-beg thing-end))))
                (cons thing-beg thing-end))]
       (hel-set-region beg end))))
@@ -1148,12 +1148,12 @@ that is used when BALANCED? argument is non-nil."
   (save-excursion
     (let (open close limit)
       (if (> direction 0)
-          (-setq open left
-                 close right
-                 (_ . limit) limits)
-        (-setq open right
-               close left
-               (limit . _) limits))
+          (setq open left
+                close right
+                limit (cdr limits))
+        (setq open right
+              close left
+              limit (car limits)))
       ;; The algorithm assume we are *inside* a pair: level of nesting is 1.
       (let ((level 1))
         (cl-block nil
