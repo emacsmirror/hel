@@ -137,7 +137,7 @@ C-i and RET from C-m."
     (if (eq t (terminal-live-p (frame-terminal frame)))
         ;; Text terminal
         (progn
-          (define-key input-decode-map [?\e]
+          (keymap-set input-decode-map "ESC"
                       (list 'menu-item "" esc-map :filter #'hel-esc))
           ;; Kitty keyboard protocol:
           ;; https://sw.kovidgoyal.net/kitty/keyboard-protocol/
