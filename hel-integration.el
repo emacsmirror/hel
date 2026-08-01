@@ -150,9 +150,10 @@ C-i and RET from C-m."
   (with-selected-frame frame
     (if (eq t (terminal-live-p (frame-terminal frame)))
         ;; Text terminal
-        (progn
+        (let ((original-esc-map (keymap-lookup input-decode-map "ESC")))
+          ;; Use the *original* escape-sequence decoding keymap, not `esc-map'.
           (keymap-set input-decode-map "ESC"
-                      (list 'menu-item "" esc-map :filter #'hel-esc))
+                      (list 'menu-item "" original-esc-map :filter #'hel-esc))
           ;; Kitty keyboard protocol:
           ;; https://sw.kovidgoyal.net/kitty/keyboard-protocol/
           (define-key input-decode-map "\e[105;5u" [C-i])
