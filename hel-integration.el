@@ -785,6 +785,12 @@ field widgets (like `Custom-mode' or `notmuch-hello-mode')."
 (declare-function embark--restart "ext:embark")
 (declare-function embark--confirm "ext:embark")
 
+(hel-set-multiple-cursors-command 'embark-act)
+(hel-set-multiple-cursors-command 'embark-dwim)
+
+(hel-advice-add 'embark-act  :around 'hel-embark-act-a)
+(hel-advice-add 'embark-dwim :around 'hel-embark-act-a)
+
 (defvar hel--embark-action nil
   "Embark action chosen for the real cursor.")
 
@@ -792,12 +798,6 @@ field widgets (like `Custom-mode' or `notmuch-hello-mode')."
   "Remember the Embark ACTION chosen for the real cursor."
   (unless hel-executing-command-for-fake-cursor
     (setq hel--embark-action action)))
-
-(hel-set-multiple-cursors-command 'embark-act)
-(hel-set-multiple-cursors-command 'embark-dwim)
-
-(hel-advice-add 'embark-act  :around 'hel-embark-act-a)
-(hel-advice-add 'embark-dwim :around 'hel-embark-act-a)
 
 (defun hel-embark-act-a (orig-fun &rest args)
   "Around advice for `embark-act'/`embark-dwim' fanning them out to all cursors.
