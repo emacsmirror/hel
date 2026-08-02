@@ -768,9 +768,10 @@ field widgets (like `Custom-mode' or `notmuch-hello-mode')."
 (add-hook 'diff-hl-show-hunk-inline-transient-mode-hook
           (defun hel-switch-to-emacs-state-while-diff-hl-show-hunk-h ()
             "Switch to Emacs state while VC diff hunk is shown."
-            (if diff-hl-show-hunk-inline-transient-mode
-                (hel-emacs-state)
-              (hel-normal-state))))
+            (when hel-local-mode
+              (if diff-hl-show-hunk-inline-transient-mode
+                  (hel-emacs-state)
+                (hel-normal-state)))))
 
 (with-eval-after-load 'diff-hl-show-hunk-inline
   (hel-keymap-set diff-hl-show-hunk-inline-transient-mode-map
@@ -819,10 +820,13 @@ recorded action on it, suppressing confirmations and restarts."
 
 (defvar magit-blame-mode)
 
-(add-hook 'magit-blame-mode-hook (defun hel-magit-blame-h ()
-                                   (if magit-blame-mode
-                                       (hel-emacs-state)
-                                     (hel-normal-state))))
+(add-hook 'magit-blame-mode-hook
+          (defun hel-magit-blame-h ()
+            "Switch to Emacs state while `magit-blame-mode' is enabled."
+            (when hel-local-mode
+              (if magit-blame-mode
+                  (hel-emacs-state)
+                (hel-normal-state)))))
 
 ;;; .
 (provide 'hel-integration)
