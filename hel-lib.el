@@ -770,13 +770,6 @@ buffer if no sexp forward."
     (goto-char pos)
     (if (< count 0) (backward-prefix-chars))))
 
-(defun hel--setup-default-forward-sexp-func-h ()
-  (setq-default forward-sexp-function (if hel-mode
-                                          #'hel-forward-sexp-only
-                                        nil)))
-
-(add-hook 'hel-mode-hook #'hel--setup-default-forward-sexp-func-h)
-
 ;;;; `hel-comment'
 
 (put 'hel-comment 'bounds-of-thing-at-point #'hel-bounds-of-comment-at-point-ppss)

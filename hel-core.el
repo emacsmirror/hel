@@ -132,6 +132,9 @@
   :group 'hel
   (if hel-mode
       (progn
+        (setq forward-sexp-function #'hel-forward-sexp-only
+              scroll-conservatively 101
+              scroll-margin 0)
         (dolist (fun-how-advice hel--advices)
           (apply #'advice-add fun-how-advice))
         (when hel-want-minibuffer
@@ -140,6 +143,9 @@
         (add-hook 'window-configuration-change-hook #'hel-update-cursor)
         (add-to-list 'mode-line-misc-info 'hel-mode-line-info))
     ;; else
+    (setq forward-sexp-function #'forward-sexp-default-function
+          scroll-conservatively (custom--standard-value 'scroll-conservatively)
+          scroll-margin (custom--standard-value 'scroll-margin))
     (cl-loop for (fun _how advice) in hel--advices
              do (advice-remove fun advice))
     (remove-hook 'minibuffer-setup-hook #'hel-local-mode)
