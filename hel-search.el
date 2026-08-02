@@ -29,6 +29,7 @@
   (require 'cl-lib)
   (require 'hel-macros))
 (require 'dash)
+(require 'pcre2el)
 (require 'hel-vars)
 (require 'hel-lib)
 (require 'hel-multiple-cursors-core)
