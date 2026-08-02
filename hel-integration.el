@@ -635,6 +635,7 @@ If cursor is in read-only area, jump to prompt instead of deleting."
 
 (add-hook 'winner-mode-hook
           (defun hel-setup-winner-mode-keys ()
+            "Setup undo window configuration keys."
             (when winner-mode
               (hel-keymap-set hel-window-map
                 "u" 'winner-undo
@@ -642,6 +643,7 @@ If cursor is in read-only area, jump to prompt instead of deleting."
 
 (add-hook 'tab-bar-history-mode-hook
           (defun hel-setup-tab-bar-history-mode-keys ()
+            "Setup undo window configuration keys."
             (when tab-bar-history-mode
               (hel-keymap-set hel-window-map
                 "u" 'tab-bar-history-back
