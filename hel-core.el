@@ -150,6 +150,8 @@
           (add-hook 'minibuffer-setup-hook #'hel-local-mode))
         (add-hook 'window-buffer-change-functions #'hel--fundamental-mode-hack)
         (add-hook 'window-configuration-change-hook #'hel-update-cursor)
+        (add-hook 'enable-theme-functions  #'hel--on-theme-change)
+        (add-hook 'disable-theme-functions #'hel--on-theme-change)
         (add-to-list 'mode-line-misc-info 'hel-mode-line-info))
     ;; else
     (setq forward-sexp-function #'forward-sexp-default-function
@@ -159,7 +161,9 @@
              do (advice-remove fun advice))
     (remove-hook 'minibuffer-setup-hook #'hel-local-mode)
     (remove-hook 'window-buffer-change-functions #'hel--fundamental-mode-hack)
-    (remove-hook 'window-configuration-change-hook #'hel-update-cursor)))
+    (remove-hook 'window-configuration-change-hook #'hel-update-cursor)
+    (remove-hook 'enable-theme-functions  #'hel--on-theme-change)
+    (remove-hook 'disable-theme-functions #'hel--on-theme-change)))
 
 (defun hel--initialize ()
   "Turn on `hel-local-mode' in current buffer if appropriate."
@@ -704,12 +708,23 @@ or a function with no arguments that returns any of above."
         (t
          (setq cursor-type arg))))
 
+;;;; Update cursor color on theme change
+
 (defun hel--set-cursor-color (color)
   ;; Cursor color can only be set for each frame but not for each buffer, also
   ;; `modify-frame-parameters' forces a redisplay, so only call it when the
   ;; color actually changes.
   (unless (equal color (frame-parameter nil 'cursor-color))
     (modify-frame-parameters (selected-frame) `((cursor-color . ,color)))))
+
+(defun hel--update-main-cursor-color (color)
+  (set-face-attribute 'hel-normal-state-main-cursor nil :background color)
+  (hel-update-cursor))
+
+(hel-advice-add 'set-cursor-color :after #'hel--update-main-cursor-color)
+
+(defun hel--on-theme-change (_theme)
+  (hel--update-main-cursor-color (face-background 'cursor)))
 
 ;;; .
 (provide 'hel-core)
