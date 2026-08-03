@@ -128,15 +128,19 @@ in the command loop, and the fake cursors can pick up on those instead."
 C-i and RET from C-m."
   (with-selected-frame frame
     (if (eq t (terminal-live-p (frame-terminal frame)))
-        ;; Text terminal
-        (let ((original-esc-map (keymap-lookup input-decode-map "ESC")))
-          ;; Use the *original* escape-sequence decoding keymap, not `esc-map'.
-          (keymap-set input-decode-map "ESC"
-                      (list 'menu-item "" original-esc-map :filter #'hel-esc))
+        ;; Text terminal.
+        ;; Guard to run only once per terminal: `input-decode-map' is
+        ;; terminal-local, but this function runs once per frame.
+        (unless (terminal-parameter nil 'hel--terminal-keys-set-up)
+          (set-terminal-parameter nil 'hel--terminal-keys-set-up t)
           ;; Kitty keyboard protocol:
           ;; https://sw.kovidgoyal.net/kitty/keyboard-protocol/
           (define-key input-decode-map "\e[105;5u" [C-i])
-          (define-key input-decode-map "\e[109;5u" [C-m]))
+          (define-key input-decode-map "\e[109;5u" [C-m])
+          (keymap-set input-decode-map "ESC"
+                      (list 'menu-item ""
+                            (keymap-lookup input-decode-map "ESC")
+                            :filter #'hel-esc)))
       ;; GUI Emacs
       (keymap-set input-decode-map "C-i" [C-i])
       (keymap-set input-decode-map "C-m" [C-m]))))
