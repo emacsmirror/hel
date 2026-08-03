@@ -127,6 +127,15 @@
 
 (put 'hel-local-mode 'permanent-local t)
 
+;; On a major-mode change Emacs executes `kill-all-local-variables', which
+;; drops this function from the buffer-local `after-revert-hook'. Then it runs
+;; the TURN-ON function of every globalized minor mode — `hel--initialize' in
+;; our case. But `hel-local-mode' is permanent-local (see above), so it is still
+;; non-nil, `hel--initialize' takes the `hel-switch-state' branch, the body
+;; of `hel-local-mode' does not re-run, and nothing restores the entry.
+;; The `permanent-local-hook' property makes `kill-all-local-variables' keep it.
+(put 'hel-disable-multiple-cursors-mode 'permanent-local-hook t)
+
 ;;;###autoload (autoload 'hel-mode "hel" nil t)
 (define-globalized-minor-mode hel-mode hel-local-mode hel--initialize
   :group 'hel
