@@ -564,9 +564,8 @@ keymap will be ignored."
 (defun hel-keymap-set (keymap &rest args)
   "Bind KEY to DEFINITION in KEYMAP.
 
-STATE is an optional keyword argument that specifies the Hel state in
-which the keybindings will be active. Can be a symbol or list of symbols.
-It must appear before any KEY / DEFINITION pairs.
+STATE is an optional keyword argument that restricts the binding to
+a Hel modal state. Can be a symbol or list of symbols.
 
 KEY and DEFINITION arguments are like those in `keymap-set'.
 If DEFINITION is nil, the corresponding key binding will be removed from KEYMAP.
@@ -608,9 +607,8 @@ Example:
 (defun hel-keymap-global-set (&rest args)
   "Create keybinding from KEY to DEFINITION in `global-map'.
 
-STATE is an optional keyword argument. If provided, keybindings are set in
-the main keymap for specified Hel state. Can be a symbol or list of symbols.
-It must appear before any KEY / DEFINITION pairs.
+STATE is an optional keyword argument that restricts the binding to
+a Hel modal state. Can be a symbol or list of symbols.
 
 KEY, DEFINITION arguments are like those of `keymap-global-set'.
 If DEFINITION is nil, then keybinding will be remove from keymap.
@@ -648,9 +646,8 @@ It is the one that is set with `use-local-map' and in most cases it is the
 major-mode keymap — i.e. it is shared with all other buffers in the same
 major mode.
 
-STATE is an optional keyword argument that specifies the Hel state
-in which the keybindings will be active. It must appear before any
-KEY / DEFINITION pairs.
+STATE is an optional keyword argument that restricts the binding to
+a Hel modal state. Can be a symbol or list of symbols.
 
 KEY, DEFINITION arguments are like those of `keymap-set'.
 If DEFINITION is nil, then keybinding will be remove from keymap.
@@ -667,9 +664,8 @@ Any number of KEY DEFINITION pairs are accepted.
   "Create buffer-local keybindings from KEY to DEFINITION for Hel STATE which
 take precedence over all others.
 
-STATE is an optional keyword argument that specifies the Hel state
-in which the keybindings will be active. It must appear before any
-KEY / DEFINITION pairs.
+STATE is an optional keyword argument that restricts the binding to
+a Hel modal state. Can be a symbol or list of symbols.
 
 \(fn [:state STATE] &rest [KEY DEFINITION]...)"
   (declare (indent defun))
