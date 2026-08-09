@@ -154,7 +154,7 @@
         (add-hook 'disable-theme-functions #'hel--on-theme-change)
         (add-to-list 'mode-line-misc-info 'hel-mode-line-info))
     ;; else
-    (setq forward-sexp-function #'forward-sexp-default-function
+    (setq forward-sexp-function nil
           scroll-conservatively (custom--standard-value 'scroll-conservatively)
           scroll-margin (custom--standard-value 'scroll-margin))
     (cl-loop for (fun _how advice) in hel--advices

@@ -763,9 +763,10 @@ on sign of COUNT."
 (put 'hel-sexp 'forward-op #'hel--forward-sexp)
 
 (defun hel-forward-sexp-only (&optional count)
-  "Default value for `forward-sexp-function'.
-Unlike `forward-sexp-default-function' this one doesn't move to the end of the
-buffer if no sexp forward."
+  "Move forward across one balanced expression (sexp).
+The value `hel-mode' gives to `forward-sexp-function'.  Unlike the standard
+`forward-sexp' behavior, this one stays in place instead of moving to the end
+of the buffer when there is no sexp ahead."
   (when-let* ((pos (scan-sexps (point) count)))
     (goto-char pos)
     (if (< count 0) (backward-prefix-chars))))
