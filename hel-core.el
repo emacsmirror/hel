@@ -152,7 +152,10 @@
         (add-hook 'window-configuration-change-hook #'hel-update-cursor)
         (add-hook 'enable-theme-functions  #'hel--on-theme-change)
         (add-hook 'disable-theme-functions #'hel--on-theme-change)
-        (add-to-list 'mode-line-misc-info 'hel-mode-line-info))
+        (add-to-list 'mode-line-misc-info 'hel-mode-line-info)
+        ;; Setup ESC, C-i and C-m keys
+        (-each (frame-list) #'hel-setup-terminal-keys)
+        (add-hook 'after-make-frame-functions #'hel-setup-terminal-keys))
     ;; else
     (setq forward-sexp-function nil
           scroll-conservatively (custom--standard-value 'scroll-conservatively)

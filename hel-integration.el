@@ -145,10 +145,6 @@ C-i and RET from C-m."
       (keymap-set input-decode-map "C-i" [C-i])
       (keymap-set input-decode-map "C-m" [C-m]))))
 
-;; Patch existing and future terminals.
-(-each (frame-list) #'hel-setup-terminal-keys)
-(add-hook 'after-make-frame-functions #'hel-setup-terminal-keys)
-
 ;;; Advices for general commands not related to particular packages
 
 (dolist (cmd '(fill-region    ; gq
