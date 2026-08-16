@@ -31,6 +31,8 @@
 ;;
 ;;; Code:
 
+(require 'pcre2el)
+
 (require 'hel-vars)
 (require 'hel-lib)
 (require 'hel-macros)
