@@ -488,9 +488,16 @@ list of categories."
 
 (hel-defvar-local hel-mode-map-alist nil
   "Association list of keymaps for current Hel state.
-This symbol lies in `emulation-mode-map-alists' and its contents are updated
-every time the Hel state changes.  Elements have the form (MODE . KEYMAP),
-with the first keymaps having higher priority.")
+This symbol lies in `emulation-mode-map-alists', so Emacs reads it on every
+key sequence.  Elements have the form (MODE . KEYMAP), with the first keymaps
+having higher priority.  An element applies only while the value of MODE is
+non-nil; MODE is t for a keymap that has no such variable.")
+
+(hel-defvar-local hel--keymap-fingerprint nil
+  "Vector holding the inputs `hel-mode-map-alist' was last built from.")
+
+(hel-defvar-local hel--keymap-fingerprint-length 0
+  "Number of significant slots in `hel--keymap-fingerprint'.")
 
 (hel-defvar-local hel-state nil
   "The current Hel state.")

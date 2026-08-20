@@ -584,8 +584,6 @@ Restore it after BODY evaluation if it is still alive."
 
 ;;; Multiple cursors minor mode
 
-(declare-function hel-update-active-keymaps "hel-core")
-
 (define-minor-mode hel-multiple-cursors-mode
   "Minor mode, which is active when there are multiple cursors in the buffer.
 No need to activate it manually: it is activated automatically when you create
@@ -599,8 +597,7 @@ delete last one with `hel-delete-fake-cursor'."
     (when (hel-any-fake-cursors-p)
       (setq hel--cursors-positions-history (hel-cursors-positions))
       (hel--delete-all-fake-cursors))
-    (hel--enable-minor-modes-incompatible-with-multiple-cursors))
-  (hel-update-active-keymaps))
+    (hel--enable-minor-modes-incompatible-with-multiple-cursors)))
 
 (defun hel-auto-multiple-cursors-mode ()
   "Enable `hel-multiple-cursors' if there are multiple cursors,

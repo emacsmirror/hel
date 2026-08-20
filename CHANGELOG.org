@@ -6,6 +6,14 @@
 - Integration with ~xref-edit-mode~ (Emacs 31). Press =i= in the ~*xref*~ buffer
   to switch to it and =ZZ= to apply changes and return back to read-only mode.
 
+** Changed
+
+- Active keymaps were rescanned for Hel’s nested keymaps only at a handful of
+  hand-picked points, with one added per package that needed it. Now they’re
+  rescanned in ~hel--post-command-hook~. The check costs about 5 μs on my
+  machine, which is cheap enough, and we no longer need to manually add
+  support for each package.
+
 * [0.12.0]
 ** Added
 

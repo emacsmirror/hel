@@ -91,7 +91,8 @@
     (when hel-normal-state
       (hel--single-undo-step-end))
     (setq hel-this-command nil
-          hel--input-cache nil)))
+          hel--input-cache nil)
+    (hel-maybe-update-active-keymaps)))
 
 (put 'hel--pre-command-hook 'permanent-local-hook t)
 (put 'hel--post-command-hook 'permanent-local-hook t)
@@ -480,18 +481,10 @@ MODE and STATE should be symbols."
 ;;; Keymaps
 
 (defun hel-update-active-keymaps ()
-  "Reset keymaps for current Hel state."
-  (hel-activate-state-keymaps hel-state))
-
-(defun hel-update-active-keymaps-a (&rest _)
-  "Refresh Hel keymaps."
-  (hel-activate-state-keymaps hel-state))
-
-(defun hel-activate-state-keymaps (state)
-  "Set the value of the `hel-mode-map-alist' in the current buffer
-according to the Hel STATE."
+  "Rebuild `hel-mode-map-alist' for the current Hel state.
+It is likely that you need `hel-maybe-update-active-keymaps' instead."
   (setq hel-mode-map-alist
-        (if state
+        (if-let* ((state hel-state))
             ;; Order matters: the first found binding will be accepted,
             ;; so earlier keymaps has higher priority.
             `(
@@ -519,11 +512,73 @@ according to the Hel STATE."
               ,(cons (hel-state-property state :variable)
                      (hel-state-property state :keymap))))))
 
+(defun hel--keymap-fingerprint-changed-p ()
+  "Return non-nil if `hel-mode-map-alist' must be rebuilt.
+"
+  (let* ((needed (+ 10 (* 2 (+ (length minor-mode-overriding-map-alist)
+                               (length minor-mode-map-alist)))))
+         (vec (if (and hel--keymap-fingerprint
+                       (<= needed (length hel--keymap-fingerprint)))
+                  hel--keymap-fingerprint
+                (setq hel--keymap-fingerprint (make-vector needed nil))))
+         (i 0)
+         (changed nil))
+    ;; `record' must be a macro. If we make it a lambda that captures and
+    ;; assigns to VEC, I and CHANGED, none of the three can stay in a stack
+    ;; slot: the byte compiler moves each one into a cons cell, so that the
+    ;; lambda and the code around it share a value. That is three cons cell
+    ;; allocations per call, and this runs after every command. A macro
+    ;; expands inline with no extra allocations.
+    (cl-macrolet ((record (form)
+                    `(let ((object ,form))
+                       (unless (eq (aref vec i) object)
+                         (aset vec i object)
+                         (setq changed t))
+                       (cl-incf i))))
+      ;; Every source `current-active-maps' is built from, plus some extra
+      ;; that `hel-update-active-keymaps' reads.
+      (record hel-state)
+      (record hel-multiple-cursors-mode)
+      (record (bound-and-true-p edebug-mode))
+      (record hel-overriding-local-map)
+      (record overriding-terminal-local-map)
+      (record overriding-local-map)
+      (record (get-char-property (point) 'keymap))
+      (record (get-char-property (point) 'local-map))
+      (record (current-local-map))
+      (record (current-global-map))
+      (cl-loop for (mode . keymap) in minor-mode-overriding-map-alist
+               when (and (boundp mode)
+                         (symbol-value mode))
+               do (record mode)
+                  (record keymap))
+      (cl-loop for (mode . keymap) in minor-mode-map-alist
+               when (and (boundp mode)
+                         (symbol-value mode))
+               do (record mode)
+                  (record keymap)))
+    ;; If a minor mode was turned off, `i' will be smaller than the recorded
+    ;; count. Comparing the count catches this.
+    (unless (= i hel--keymap-fingerprint-length)
+      (setq hel--keymap-fingerprint-length i
+            changed t))
+    changed))
+
+(defun hel-maybe-update-active-keymaps ()
+  "Rebuild `hel-mode-map-alist' if anything it is built from has changed."
+  (when (hel--keymap-fingerprint-changed-p)
+    (hel-update-active-keymaps)))
+
+(defun hel-update-active-keymaps-a (&rest _)
+  "Rebuild `hel-mode-map-alist', ignoring the advised function's arguments."
+  (hel-update-active-keymaps))
+
 (defun hel-minor-mode-for-keymap (keymap)
   "Return the minor mode associated with KEYMAP or t if it doesn't have one."
   (when (symbolp keymap)
     (cl-callf symbol-value keymap))
-  (or (car (rassq keymap minor-mode-map-alist))
+  (or (car (rassq keymap minor-mode-overriding-map-alist))
+      (car (rassq keymap minor-mode-map-alist))
       t))
 
 (defun hel-get-nested-hel-keymap (keymap state &optional ignore-parent)

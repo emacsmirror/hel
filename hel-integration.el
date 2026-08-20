@@ -198,6 +198,9 @@ C-i and RET from C-m."
 (defvar edebug-mode-map)
 
 (with-eval-after-load 'edebug
+  ;; Edebug enters a recursive edit in the middle of the command that reached
+  ;; the instrumented code, so `hel--post-command-hook' has not run by the time
+  ;; edebug reads its first key.
   (add-hook 'edebug-mode-hook #'hel-update-active-keymaps)
   (hel-keymap-set edebug-mode-map
     "SPC"    nil ; unding `edebug-step-mode'
@@ -207,6 +210,11 @@ C-i and RET from C-m."
     "C-c h" 'edebug-goto-here) ; <leader> h
   (hel-keymap-set edebug-mode-map :state 'normal
     "<escape>" #'hel-normal-state-escape))
+
+;;;; Eglot
+
+(with-eval-after-load 'eglot
+  (add-hook 'eglot-managed-mode-hook #'hel-maybe-update-active-keymaps))
 
 ;;;; Eldoc
 
@@ -519,9 +527,6 @@ If cursor is in read-only area, jump to prompt instead of deleting."
 
 ;;;; outline
 
-;; For when we manually enable `outline-minor-mode' in an existing buffer.
-(hel-advice-add 'outline-minor-mode :after #'hel-update-active-keymaps-a)
-
 (hel-advice-add 'outline-insert-heading :after #'hel-switch-to-insert-state-a)
 
 (hel-advice-add 'outline-up-heading               :before #'hel-maybe-deactivate-mark-a)
@@ -686,8 +691,7 @@ field widgets (like `Custom-mode' or `notmuch-hello-mode')."
 (defun hel--widget-field-h ()
   (cond ((widget-field-at (point))
          (when (eq hel-state 'emacs)
-           (hel-normal-state)
-           (hel-update-active-keymaps)))
+           (hel-normal-state)))
         ((not (eq hel-state 'emacs))
          (when hel-multiple-cursors-mode (hel-multiple-cursors-mode -1))
          (hel-emacs-state))))
