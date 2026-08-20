@@ -3,6 +3,9 @@
 
 - Integration with [[https://eshelyaron.com/posts/2023-11-17-completion-preview-in-emacs.html][completion-preview-mode]].
 
+- Integration with ~xref-edit-mode~ (Emacs 31). Press =i= in the ~*xref*~ buffer
+  to switch to it and =ZZ= to apply changes and return back to read-only mode.
+
 * [0.12.0]
 ** Added
 

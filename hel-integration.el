@@ -718,6 +718,16 @@ field widgets (like `Custom-mode' or `notmuch-hello-mode')."
 (hel-advice-add 'xref--show-xrefs      :around #'hel-jump-command-a)
 (hel-advice-add 'xref--show-defs       :around #'hel-jump-command-a)
 
+;; Emacs 31
+(when (fboundp 'xref-change-to-xref-edit-mode)
+  (hel-set-single-cursor-command 'xref-edit-save-changes)
+  (hel-advice-add 'xref-edit-save-changes :before #'hel-deactivate-mark-a)
+  (hel-advice-add 'xref-edit-save-changes :before #'hel-disable-multiple-cursors-mode)
+  ;; `xref-edit-save-changes' assigns `major-mode' by hand and does not run
+  ;; `after-change-major-mode-hook', so Hel never learns that the buffer went
+  ;; back to Xref mode.
+  (hel-advice-add 'xref-edit-save-changes :after #'hel-switch-to-initial-state))
+
 ;;; External packages
 ;;;; corfu
 
