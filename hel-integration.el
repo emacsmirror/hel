@@ -728,7 +728,7 @@ field widgets (like `Custom-mode' or `notmuch-hello-mode')."
 
     (hel-keymap-set xref--xref-buffer-mode-map
       "i" #'xref-change-to-xref-edit-mode)
-    (hel-keymap-set :state 'normal
+    (hel-keymap-set xref-edit-mode-map :state 'normal
       "Z Z" #'xref-edit-save-changes)
     (hel-keymap-set xref-edit-mode-map
       "<remap> <save-buffer>" #'xref-edit-save-changes)
