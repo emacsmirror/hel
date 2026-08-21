@@ -108,5 +108,17 @@ parameters:
          ,@body)
        ,@properties)))
 
+;; Since Emacs 31, the autoload scraper expands a macro that carries
+;; this property, so a plain `;;;###autoload' before a `hel-define-command'
+;; form yields an `autoload' call. Emacs 29 and 30 know only a fixed set of
+;; definers,and copy the whole form into the loaddefs file, where it runs
+;; before Hel is loaded. To stay portable, write the cookie out in full:
+;;
+;;     ;;;###autoload (autoload 'my-command "my-file" nil t)
+;;     (hel-define-command my-command () ...)
+;;
+(function-put 'hel-define-command 'autoload-macro 'expand)
+
+;;; .
 (provide 'hel-macros)
 ;;; hel-macros.el ends here
