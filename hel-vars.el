@@ -170,6 +170,7 @@ Hel is in Emacs state. All other attributes are ignored."
 ;;; Customizable variables
 
 (defvar hel-mode nil)
+(declare-function hel-local-mode "hel-core" (&optional arg))
 
 (defcustom hel-want-minibuffer t
   "Whether to enable Hel in minibuffer(s)."

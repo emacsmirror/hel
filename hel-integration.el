@@ -105,46 +105,6 @@ in the command loop, and the fake cursors can pick up on those instead."
 (hel-keymap-set hel-multiple-cursors-mode-map
   "<remap> <cycle-spacing>" #'just-one-space)
 
-;;; ESC, C-i and C-m keys
-
-(defun hel-esc (map)
-  "Translate `\\e' to `escape' if no further event arrives."
-  (if (and (not hel-inhibit-esc)
-           (or hel-local-mode
-               (active-minibuffer-window))
-           (let ((keys (this-single-command-keys)))
-             (and (length> keys 0)
-                  (= (aref keys (1- (length keys))) ?\e)))
-           (sit-for hel-esc-delay))
-      (prog1 [escape]
-        (when defining-kbd-macro
-          (end-kbd-macro)
-          (setq last-kbd-macro (vconcat last-kbd-macro [escape]))
-          (start-kbd-macro t t)))
-    map))
-
-(defun hel-setup-terminal-keys (frame)
-  "Make Emacs correctly handle ESC in terminal, and distinguish TAB from
-C-i and RET from C-m."
-  (with-selected-frame frame
-    (if (eq t (terminal-live-p (frame-terminal frame)))
-        ;; Text terminal.
-        ;; Guard to run only once per terminal: `input-decode-map' is
-        ;; terminal-local, but this function runs once per frame.
-        (unless (terminal-parameter nil 'hel--terminal-keys-set-up)
-          (set-terminal-parameter nil 'hel--terminal-keys-set-up t)
-          ;; Kitty keyboard protocol:
-          ;; https://sw.kovidgoyal.net/kitty/keyboard-protocol/
-          (define-key input-decode-map "\e[105;5u" [C-i])
-          (define-key input-decode-map "\e[109;5u" [C-m])
-          (keymap-set input-decode-map "ESC"
-                      (list 'menu-item ""
-                            (keymap-lookup input-decode-map "ESC")
-                            :filter #'hel-esc)))
-      ;; GUI Emacs
-      (keymap-set input-decode-map "C-i" [C-i])
-      (keymap-set input-decode-map "C-m" [C-m]))))
-
 ;;; Advices for general commands not related to particular packages
 
 (dolist (cmd '(fill-region    ; gq

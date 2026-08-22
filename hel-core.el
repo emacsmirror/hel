@@ -55,48 +55,6 @@
 
 ;;; Hel mode
 
-(defun hel--pre-command-hook ()
-  "Hook run before each command is executed. See `pre-command-hook'."
-  (when (and hel--extend-selection (not mark-active))
-    (set-mark (point)))
-  (unless hel-executing-command-for-fake-cursor
-    (setq hel-this-command this-command)
-    ;; Use our undo mechanism only in Normal state. This will
-    ;; - merge all changes in Insert state into one undo step;
-    ;; - ignore buffers in Emacs state that use undo, like Dired.
-    (when hel-normal-state
-      (hel--single-undo-step-beginning))))
-
-(defun hel--post-command-hook ()
-  "Hook run after each command is executed. See `post-command-hook'."
-  (unless hel-executing-command-for-fake-cursor
-    (when (and hel-multiple-cursors-mode
-               (not (eq hel-this-command #'ignore))
-               ;; TODO: This condition skips keyboard macros. We need to handle
-               ;; them! They will generate actual commands that are also run in
-               ;; the command loop.
-               (functionp hel-this-command))
-      ;; Wrap in `condition-case' to protect this function from being removed
-      ;; from `post-command-hook', because the function throwing the error is
-      ;; unconditionally removed from it.
-      (condition-case err
-          (progn
-            (hel--execute-command-for-all-fake-cursors hel-this-command)
-            (when (hel--merge-cursors-p hel-this-command)
-              (hel-merge-overlapping-cursors)))
-        (error
-         (message "[Hel] error while executing command for fake cursor: %s"
-                  (error-message-string err)))
-        (quit))) ;; "C-g" during multistage command.
-    (when hel-normal-state
-      (hel--single-undo-step-end))
-    (setq hel-this-command nil
-          hel--input-cache nil)
-    (hel-maybe-update-active-keymaps)))
-
-(put 'hel--pre-command-hook 'permanent-local-hook t)
-(put 'hel--post-command-hook 'permanent-local-hook t)
-
 (define-minor-mode hel-local-mode
   "Minor mode for setting up Hel in a current buffer."
   :global nil
@@ -192,6 +150,46 @@ ensures `hel-local-mode' is activated in such cases."
 
 (hel-advice-add 'use-global-map :after #'hel-update-active-keymaps-a)
 (hel-advice-add 'use-local-map  :after #'hel-update-active-keymaps-a)
+
+;;; ESC, C-i and C-m keys
+
+(defun hel-esc (map)
+  "Translate `\\e' to `escape' if no further event arrives."
+  (if (and (not hel-inhibit-esc)
+           (or hel-local-mode
+               (active-minibuffer-window))
+           (let ((keys (this-single-command-keys)))
+             (and (length> keys 0)
+                  (= (aref keys (1- (length keys))) ?\e)))
+           (sit-for hel-esc-delay))
+      (prog1 [escape]
+        (when defining-kbd-macro
+          (end-kbd-macro)
+          (setq last-kbd-macro (vconcat last-kbd-macro [escape]))
+          (start-kbd-macro t t)))
+    map))
+
+(defun hel-setup-terminal-keys (frame)
+  "Make Emacs correctly handle ESC in terminal, and distinguish TAB from
+C-i and RET from C-m."
+  (with-selected-frame frame
+    (if (eq t (terminal-live-p (frame-terminal frame)))
+        ;; Text terminal.
+        ;; Guard to run only once per terminal: `input-decode-map' is
+        ;; terminal-local, but this function runs once per frame.
+        (unless (terminal-parameter nil 'hel--terminal-keys-set-up)
+          (set-terminal-parameter nil 'hel--terminal-keys-set-up t)
+          ;; Kitty keyboard protocol:
+          ;; https://sw.kovidgoyal.net/kitty/keyboard-protocol/
+          (define-key input-decode-map "\e[105;5u" [C-i])
+          (define-key input-decode-map "\e[109;5u" [C-m])
+          (keymap-set input-decode-map
+                      "ESC" `( menu-item ""
+                               ,(keymap-lookup input-decode-map "ESC")
+                               :filter hel-esc)))
+      ;; GUI Emacs
+      (keymap-set input-decode-map "C-i" [C-i])
+      (keymap-set input-decode-map "C-m" [C-m]))))
 
 ;;; Hel states
 
@@ -423,6 +421,50 @@ MODE and STATE should be symbols."
                 'hel-emacs-state-main-cursor) ; face
   (setq hel--extend-selection nil)
   (deactivate-mark))
+
+;;; Command loop hooks
+
+(defun hel--pre-command-hook ()
+  "Hook run before each command is executed. See `pre-command-hook'."
+  (when (and hel--extend-selection (not mark-active))
+    (set-mark (point)))
+  (unless hel-executing-command-for-fake-cursor
+    (setq hel-this-command this-command)
+    ;; Use our undo mechanism only in Normal state. This will
+    ;; - merge all changes in Insert state into one undo step;
+    ;; - ignore buffers in Emacs state that use undo, like Dired.
+    (when hel-normal-state
+      (hel--single-undo-step-beginning))))
+
+(defun hel--post-command-hook ()
+  "Hook run after each command is executed. See `post-command-hook'."
+  (unless hel-executing-command-for-fake-cursor
+    (when (and hel-multiple-cursors-mode
+               (not (eq hel-this-command #'ignore))
+               ;; TODO: This condition skips keyboard macros. We need to handle
+               ;; them! They will generate actual commands that are also run in
+               ;; the command loop.
+               (functionp hel-this-command))
+      ;; Wrap in `condition-case' to protect this function from being removed
+      ;; from `post-command-hook', because the function throwing the error is
+      ;; unconditionally removed from it.
+      (condition-case err
+          (progn
+            (hel--execute-command-for-all-fake-cursors hel-this-command)
+            (when (hel--merge-cursors-p hel-this-command)
+              (hel-merge-overlapping-cursors)))
+        (error
+         (message "[Hel] error while executing command for fake cursor: %s"
+                  (error-message-string err)))
+        (quit))) ;; "C-g" during multistage command.
+    (when hel-normal-state
+      (hel--single-undo-step-end))
+    (setq hel-this-command nil
+          hel--input-cache nil)
+    (hel-maybe-update-active-keymaps)))
+
+(put 'hel--pre-command-hook 'permanent-local-hook t)
+(put 'hel--post-command-hook 'permanent-local-hook t)
 
 ;;; Input-method
 

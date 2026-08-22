@@ -56,6 +56,8 @@
 (require 'rect)
 (require 'hel-lib)
 
+(defvar hel-insert-state)
+
 ;;; Undo
 
 (hel-defvar-local hel--in-single-undo-step nil
@@ -142,6 +144,53 @@ CURSORS-POSITIONS is an alist returned by `hel-cursors-positions' function."
   (hel-place-cursors cursors-positions)
   (push `(apply hel--undo-step-start ,cursors-positions)
         buffer-undo-list))
+
+;;; Multiple cursors minor mode
+
+(define-minor-mode hel-multiple-cursors-mode
+  "Minor mode, which is active when there are multiple cursors in the buffer.
+No need to activate it manually: it is activated automatically when you create
+first fake cursor with `hel-create-fake-cursor', and disabled when you
+delete last one with `hel-delete-fake-cursor'."
+  :interactive nil
+  :keymap (make-sparse-keymap)
+  (if hel-multiple-cursors-mode
+      (hel--disable-minor-modes-incompatible-with-multiple-cursors)
+    ;; else
+    (when (hel-any-fake-cursors-p)
+      (setq hel--cursors-positions-history (hel-cursors-positions))
+      (hel--delete-all-fake-cursors))
+    (hel--enable-minor-modes-incompatible-with-multiple-cursors)))
+
+(defun hel-auto-multiple-cursors-mode ()
+  "Enable `hel-multiple-cursors' if there are multiple cursors,
+disable if only one."
+  (when (xor hel-multiple-cursors-mode
+             (hel-any-fake-cursors-p))
+    (hel-multiple-cursors-mode 'toggle)))
+
+(defun hel-disable-multiple-cursors-mode ()
+  "Remove all fake cursors from the current buffer.
+You may restore them with `hel-restore-cursors'."
+  (interactive)
+  (when hel-multiple-cursors-mode
+    (hel-multiple-cursors-mode -1)))
+
+(defun hel--disable-minor-modes-incompatible-with-multiple-cursors ()
+  "Disable incompatible minor modes while there are multiple cursors
+in the buffer."
+  (dolist (mode hel-minor-modes-incompatible-with-multiple-cursors)
+    (when (and (boundp mode) (symbol-value mode))
+      (push mode hel--temporarily-disabled-minor-modes)
+      (funcall mode -1))))
+
+(defun hel--enable-minor-modes-incompatible-with-multiple-cursors ()
+  "Enable minor modes disabled by
+`hel--disable-minor-modes-incompatible-with-multiple-cursors'."
+  (when hel--temporarily-disabled-minor-modes
+    (dolist (mode hel--temporarily-disabled-minor-modes)
+      (funcall mode 1))
+    (setq hel--temporarily-disabled-minor-modes nil)))
 
 ;;; Fake cursor object
 
@@ -581,53 +630,6 @@ Restore it after BODY evaluation if it is still alive."
                 (hel-restore-point-from-fake-cursor (hel-first-fake-cursor))))
          (hel-auto-multiple-cursors-mode)
          (hel-update-cursor)))))
-
-;;; Multiple cursors minor mode
-
-(define-minor-mode hel-multiple-cursors-mode
-  "Minor mode, which is active when there are multiple cursors in the buffer.
-No need to activate it manually: it is activated automatically when you create
-first fake cursor with `hel-create-fake-cursor', and disabled when you
-delete last one with `hel-delete-fake-cursor'."
-  :interactive nil
-  :keymap (make-sparse-keymap)
-  (if hel-multiple-cursors-mode
-      (hel--disable-minor-modes-incompatible-with-multiple-cursors)
-    ;; else
-    (when (hel-any-fake-cursors-p)
-      (setq hel--cursors-positions-history (hel-cursors-positions))
-      (hel--delete-all-fake-cursors))
-    (hel--enable-minor-modes-incompatible-with-multiple-cursors)))
-
-(defun hel-auto-multiple-cursors-mode ()
-  "Enable `hel-multiple-cursors' if there are multiple cursors,
-disable if only one."
-  (when (xor hel-multiple-cursors-mode
-             (hel-any-fake-cursors-p))
-    (hel-multiple-cursors-mode 'toggle)))
-
-(defun hel-disable-multiple-cursors-mode ()
-  "Remove all fake cursors from the current buffer.
-You may restore them with `hel-restore-cursors'."
-  (interactive)
-  (when hel-multiple-cursors-mode
-    (hel-multiple-cursors-mode -1)))
-
-(defun hel--disable-minor-modes-incompatible-with-multiple-cursors ()
-  "Disable incompatible minor modes while there are multiple cursors
-in the buffer."
-  (dolist (mode hel-minor-modes-incompatible-with-multiple-cursors)
-    (when (and (boundp mode) (symbol-value mode))
-      (push mode hel--temporarily-disabled-minor-modes)
-      (funcall mode -1))))
-
-(defun hel--enable-minor-modes-incompatible-with-multiple-cursors ()
-  "Enable minor modes disabled by
-`hel--disable-minor-modes-incompatible-with-multiple-cursors'."
-  (when hel--temporarily-disabled-minor-modes
-    (dolist (mode hel--temporarily-disabled-minor-modes)
-      (funcall mode 1))
-    (setq hel--temporarily-disabled-minor-modes nil)))
 
 ;;; Merge overlapping regions
 
