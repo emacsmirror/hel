@@ -32,6 +32,7 @@
 (require 'hel-core)
 (require 'hel-commands)
 (require 'hel-scroll)
+(require 'pcre2el)
 
 ;;; Universal argument
 

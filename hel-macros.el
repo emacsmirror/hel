@@ -34,6 +34,7 @@
 (require 'dash)
 (require 'hel-vars)
 (require 'hel-lib)
+(require 'pcre2el)
 
 ;;;; Define advices
 
