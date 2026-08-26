@@ -380,6 +380,26 @@ If cursor is in read-only area, jump to prompt instead of deleting."
     "C-j"  'completion-preview-next-candidate
     "C-k"  'completion-preview-prev-candidate))
 
+;;;; grep
+
+;; `grep-edit-mode' was introduced in Emacs 31
+(with-eval-after-load 'grep
+  (when (fboundp 'grep-change-to-grep-edit-mode)
+    (defvar grep-edit-mode-map)
+    (declare-function grep-edit-save-changes "grep")
+
+    (hel-keymap-set grep-edit-mode-map :state 'normal
+      "Z Z" #'grep-edit-save-changes)
+    (hel-keymap-set grep-edit-mode-map
+      "<remap> <save-buffer>" #'grep-edit-save-changes)
+
+    (hel-advice-add 'grep-change-to-grep-edit-mode :after #'hel-switch-to-initial-state)
+
+    (hel-set-single-cursor-command 'grep-edit-save-changes)
+    (hel-advice-add 'grep-edit-save-changes :before #'hel-deactivate-mark-a)
+    (hel-advice-add 'grep-edit-save-changes :before #'hel-disable-multiple-cursors-mode)
+    (hel-advice-add 'grep-edit-save-changes :after #'hel-switch-to-initial-state)))
+
 ;;;; wgrep
 
 (hel-advice-add 'wgrep-change-to-wgrep-mode :after #'hel-switch-to-initial-state)
