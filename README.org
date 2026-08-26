@@ -1,5 +1,6 @@
 * Hel — [[https://helix-editor.com/][Helix]] Emulation Layer for Emacs
 
+#+html: <a href="https://melpa.org/#/hel"><img alt="MELPA" src="https://melpa.org/packages/hel-badge.svg"/></a>
 #+html: <a href="https://www.gnu.org/software/emacs/"><img alt="GNU Emacs" src="https://img.shields.io/badge/GNU%20Emacs-29.1%2B-7F5AB6?logo=gnuemacs&logoColor=white"></a>
 #+html: <a href="LICENSE"><img alt="License: GPLv3" src="https://img.shields.io/badge/license-GPLv3-blue"></a>
 
@@ -69,7 +70,7 @@ If you want a Spacemacs / Doom like configuration framework but for Hel
 try [[https://github.com/helheim-emacs/helheim][Helheim Emacs]].
 #+end_quote
 
-Hel is not yet on MELPA. You can install it directly from Github.
+Hel is on [[https://melpa.org/#/hel][MELPA]].
 
 *** Emacs built-in package manager
 
@@ -81,14 +82,8 @@ This is the most minimal example of the =init.el= file:
 (setq package-archives '(("melpa"  . "https://melpa.org/packages/")
                          ("gnu"    . "https://elpa.gnu.org/packages/")
                          ("nongnu" . "https://elpa.nongnu.org/nongnu/")))
-;; Dependencies
-(use-package dash :ensure t)
-(use-package avy :ensure t)
-(use-package pcre2el :ensure t)
-(use-package ultra-scroll :ensure t)
-
 (use-package hel
-  :vc (:url "https://github.com/helheim-emacs/hel.git" :rev "main")
+  :ensure t
   :custom (inhibit-startup-screen t)
   :config (hel-mode))
 
@@ -98,12 +93,7 @@ This is the most minimal example of the =init.el= file:
 *** [[https://github.com/progfolio/elpaca][Elpaca]]
 
 #+begin_src emacs-lisp
-(elpaca 'dash)
-(elpaca 'avy)
-(elpaca 'pcre2el)
-(elpaca 'ultra-scroll)
-
-(elpaca '(hel :host github :repo "helheim-emacs/hel")
+(elpaca 'hel
   (setopt inhibit-startup-screen t)
   (hel-mode))
 #+end_src
@@ -111,12 +101,7 @@ This is the most minimal example of the =init.el= file:
 *** [[https://github.com/radian-software/straight.el][Straight]]
 
 #+begin_src emacs-lisp
-(straight-use-package 'dash)
-(straight-use-package 'avy)
-(straight-use-package 'pcre2el)
-(straight-use-package 'ultra-scroll)
-
-(straight-use-package '(hel :host github :repo "helheim-emacs/hel"))
+(straight-use-package 'hel)
 (setopt inhibit-startup-screen t)
 (hel-mode)
 #+end_src
