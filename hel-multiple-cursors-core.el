@@ -64,63 +64,78 @@
   "Non-nil while we are in the single undo step.")
 
 (defun hel--single-undo-step-beginning ()
-  "Initiate atomic undo step.
+  "Open an atomic undo step.
 All following buffer modifications are grouped together as a single
 action. The step is terminated with `hel--single-undo-step-end'."
   (unless (or hel--in-single-undo-step
-              (hel-undo-command-p this-command)
               (eq buffer-undo-list t))
     (setq hel--in-single-undo-step t)
     (when (car-safe buffer-undo-list)
       (undo-boundary))
-    (setq hel--undo-list-pointer buffer-undo-list)
-    (hel--push-undo-boundary-1)))
+    (setq hel--undo-list-pointer buffer-undo-list
+          hel--undo-cursors-positions (hel-cursors-positions))))
 
 (defun hel--single-undo-step-end ()
-  "Finalize atomic undo step started by `hel--single-undo-step-beginning'."
+  "Finalize atomic undo step started by `hel--single-undo-step-beginning'.
+The step is dropped when the command replayed the undo history instead of
+editing the buffer."
   (when hel--in-single-undo-step
-    (hel--push-undo-boundary-2)
-    (unless (eq buffer-undo-list hel--undo-list-pointer)
-      (let ((undo-list buffer-undo-list))
-        (while (and (consp undo-list)
-                    (eq (car undo-list) nil))
-          (setq undo-list (cdr undo-list)))
-        (let ((equiv (gethash (car undo-list)
-                              undo-equiv-table)))
-          ;; Remove undo boundaries (nil elements) from `buffer-undo-list'
-          ;; withing current undo step. Also remove number entries -- they
-          ;; move point during undo, and we handle cursors positions manually
-          ;; to synchronize real cursor with fake ones.
-          (setq undo-list (hel-destructive-filter
-                           (lambda (i) (or (numberp i) (null i)))
-                           undo-list
-                           hel--undo-list-pointer))
-          ;; Restore "undo" status of the tip of `buffer-undo-list'.
-          (when equiv
-            (puthash (car undo-list) equiv
-                     undo-equiv-table)))
-        (setq buffer-undo-list undo-list)))
-    (setq hel--in-single-undo-step nil
-          hel--undo-list-pointer nil)))
+    (unwind-protect
+        (unless (or (eq buffer-undo-list t)
+                    (eq buffer-undo-list hel--undo-list-pointer)
+                    ;; recognises a replay done by `undo'
+                    (hel--undo-tip-is-redo-record-p)
+                    ;; recognises a replay done by `undo-redo'
+                    (not (hel--undo-list-pointer-reachable-p)))
+          (hel--merge-undo-step))
+      (setq hel--in-single-undo-step nil
+            hel--undo-list-pointer nil
+            hel--undo-cursors-positions nil))))
 
-(defun hel--push-undo-boundary-1 ()
-  (setq hel--undo-boundary
-        `(apply hel--undo-step-end ,(hel-cursors-positions)))
-  (push hel--undo-boundary buffer-undo-list))
+(defun hel--undo-tip-is-redo-record-p ()
+  "Return non-nil if the tip of `buffer-undo-list' was produced by an undo.
+Emacs marks such records in `undo-equiv-table'."
+  (let ((undo-list buffer-undo-list))
+    (while (and (consp undo-list) (null (car undo-list)))
+      (setq undo-list (cdr undo-list)))
+    (gethash undo-list undo-equiv-table)))
 
-(defun hel--push-undo-boundary-2 ()
-  (when hel--undo-boundary
-    (let ((undo-list buffer-undo-list))
-      (while (and (consp undo-list)
-                  (eq (car undo-list) nil))
-        (pop undo-list))
-      (if (equal (car undo-list) hel--undo-boundary)
-          (pop undo-list)
-        ;; else
-        (push `(apply hel--undo-step-start ,(hel-cursors-positions))
-              undo-list))
-      (setq hel--undo-boundary nil
-            buffer-undo-list undo-list))))
+(defun hel--undo-list-pointer-reachable-p ()
+  "Return non-nil if `hel--undo-list-pointer' is still part of `buffer-undo-list'.
+`undo-redo' replaces `buffer-undo-list' with a tail of itself, which drops
+the pointer."
+  (let ((tail buffer-undo-list))
+    (while (and (consp tail)
+                (not (eq tail hel--undo-list-pointer)))
+      (setq tail (cdr tail)))
+    (eq tail hel--undo-list-pointer)))
+
+(defun hel--merge-undo-step ()
+  "Merge everything the command recorded into a single change group.
+Add one record at each end of the group. Both records hold the positions
+of every cursor, so that undo and redo can put the cursors back."
+  ;; Remove undo boundaries (nil elements) from `buffer-undo-list' withing
+  ;; current undo step. Also remove number entries -- they move point during
+  ;; undo, and we handle cursors positions manually to synchronize real cursor
+  ;; with fake ones.
+  (let ((undo-list (hel-destructive-filter
+                    (lambda (i) (or (numberp i) (null i)))
+                    buffer-undo-list
+                    hel--undo-list-pointer)))
+    (if (eq undo-list hel--undo-list-pointer)
+        ;; The command recorded nothing in undo list.
+        (setq buffer-undo-list undo-list)
+      ;; Else put on the both ends of the undo step records that hold
+      ;; the positions of every cursor, so that undo and redo can put
+      ;; the cursors back.
+      (setq buffer-undo-list
+            (cons `(apply hel--undo-step-start ,(hel-cursors-positions))
+                  undo-list))
+      (let ((tail undo-list))
+        (while (not (eq (cdr tail) hel--undo-list-pointer))
+          (setq tail (cdr tail)))
+        (setcdr tail (cons `(apply hel--undo-step-end ,hel--undo-cursors-positions)
+                           hel--undo-list-pointer))))))
 
 (defun hel--undo-step-start (cursors-positions)
   "This function always called from `buffer-undo-list' during undo by

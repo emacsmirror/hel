@@ -296,10 +296,6 @@ DIRECTION should be 1 or -1."
   (when (/= direction (hel-region-direction))
     (hel--exchange-point-and-mark)))
 
-(defun hel-undo-command-p (command)
-  "Return non-nil if COMMAND is implementing undo/redo functionality."
-  (memq command hel-undo-commands))
-
 (defun hel-destructive-filter (predicate list &optional pointer)
   "Destructively remove elements in LIST that satisfy PREDICATE
 between start and POINTER.

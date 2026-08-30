@@ -459,7 +459,11 @@ MODE and STATE should be symbols."
                   (error-message-string err)))
         (quit))) ;; "C-g" during multistage command.
     (when hel-normal-state
-      (hel--single-undo-step-end))
+      (condition-case err
+          (hel--single-undo-step-end)
+        (error
+         (message "[Hel] error while closing the undo step: %s"
+                  (error-message-string err)))))
     (setq hel-this-command nil
           hel--input-cache nil)
     (hel-maybe-update-active-keymaps)))

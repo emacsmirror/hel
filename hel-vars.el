@@ -563,9 +563,6 @@ Default value is 0 - scroll half the screen.")
   (defvar savehist-additional-variables)
   (add-to-list 'savehist-additional-variables 'hel-regex-history))
 
-(defvar hel-undo-commands '(hel-undo hel-redo undo undo-redo)
-  "Commands that implement undo/redo functionality.")
-
 (hel-defvar-local hel--cursors-table nil
   "Hash table mapping fake cursors IDs to cursors overlays.")
 
@@ -618,7 +615,8 @@ multiple cursors.")
 (hel-defvar-local hel--undo-list-pointer nil
   "Stores the start of the current undo step in `buffer-undo-list'.")
 
-(hel-defvar-local hel--undo-boundary nil)
+(hel-defvar-local hel--undo-cursors-positions nil
+  "Positions of all cursors as they were when the current undo step opened.")
 
 (hel-defvar-local hel--cursors-positions-history nil)
 
