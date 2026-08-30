@@ -405,7 +405,8 @@ MODE and STATE should be symbols."
   :input-method t
   (if hel-insert-state
       (progn
-        (setq hel--region-was-active-on-insert
+        (setq hel-undo--previous-command-kind 'other
+              hel--region-was-active-on-insert
               (and hel-reactivate-selection-after-insert-state
                    (region-active-p)))
         (hel-with-each-cursor
@@ -422,108 +423,6 @@ MODE and STATE should be symbols."
                 'hel-emacs-state-main-cursor) ; face
   (setq hel--extend-selection nil)
   (deactivate-mark))
-
-;;; Command loop hooks
-
-(defun hel--pre-command-hook ()
-  "Hook run before each command is executed. See `pre-command-hook'."
-  (when (and hel--extend-selection (not mark-active))
-    (set-mark (point)))
-  (unless hel-executing-command-for-fake-cursor
-    (setq hel-this-command this-command)
-    ;; Use our undo mechanism only in Normal state. This will
-    ;; - merge all changes in Insert state into one undo step;
-    ;; - ignore buffers in Emacs state that use undo, like Dired.
-    (when hel-normal-state
-      (hel--single-undo-step-beginning))))
-
-(defun hel--post-command-hook ()
-  "Hook run after each command is executed. See `post-command-hook'."
-  (unless hel-executing-command-for-fake-cursor
-    (when (and hel-multiple-cursors-mode
-               (not (eq hel-this-command #'ignore))
-               ;; TODO: This condition skips keyboard macros. We need to handle
-               ;; them! They will generate actual commands that are also run in
-               ;; the command loop.
-               (functionp hel-this-command))
-      ;; Wrap in `condition-case' to protect this function from being removed
-      ;; from `post-command-hook', because the function throwing the error is
-      ;; unconditionally removed from it.
-      (condition-case err
-          (progn
-            (hel--execute-command-for-all-fake-cursors hel-this-command)
-            (when (hel--merge-cursors-p hel-this-command)
-              (hel-merge-overlapping-cursors)))
-        (error
-         (message "[Hel] error while executing command for fake cursor: %s"
-                  (error-message-string err)))
-        (quit))) ;; "C-g" during multistage command.
-    (when hel-normal-state
-      (condition-case err
-          (hel--single-undo-step-end)
-        (error
-         (message "[Hel] error while closing the undo step: %s"
-                  (error-message-string err)))))
-    (setq hel-this-command nil
-          hel--input-cache nil)
-    (hel-maybe-update-active-keymaps)))
-
-(put 'hel--pre-command-hook 'permanent-local-hook t)
-(put 'hel--post-command-hook 'permanent-local-hook t)
-
-;;; Input-method
-
-(defun hel-activate-input-method ()
-  "Enable input method in Hel states with `:input-method' property set."
-  (when (and hel-local-mode hel-state)
-    (setq hel-input-method current-input-method)
-    (unless (hel-state-property hel-state :input-method)
-      (let ((input-method-activate-hook nil)
-            (input-method-deactivate-hook nil))
-        (deactivate-input-method)))))
-
-(defun hel-deactivate-input-method ()
-  "Disable input method in all states."
-  (setq hel-input-method nil))
-
-(put 'hel-activate-input-method 'permanent-local-hook t)
-(put 'hel-deactivate-input-method 'permanent-local-hook t)
-
-(defmacro hel-with-input-method (&rest body)
-  "Execute body with current input method active."
-  (declare (indent defun))
-  `(if hel-input-method
-       (unwind-protect
-           (progn
-             (remove-hook 'input-method-activate-hook #'hel-activate-input-method t)
-             (remove-hook 'input-method-deactivate-hook #'hel-deactivate-input-method t)
-             (prog2
-                 (activate-input-method hel-input-method)
-                 (progn ,@body)
-               (deactivate-input-method)))
-         (add-hook 'input-method-activate-hook #'hel-activate-input-method 90 t)
-         (add-hook 'input-method-deactivate-hook #'hel-deactivate-input-method 90 t))
-     ;; else
-     ,@body))
-
-(defun hel--with-input-method-a (orig-fun &rest args)
-  (hel-with-input-method
-    (apply orig-fun args)))
-
-(hel-advice-add 'read-char :around #'hel--with-input-method-a)
-;; (hel-advice-add 'read-char-from-minibuffer :around #'hel--with-input-method-a)
-
-(defun hel--refresh-input-method-a (orig-fun &rest args)
-  "Refresh `hel-input-method'."
-  (cond ((not hel-local-mode)
-         (apply orig-fun args))
-        ((hel-state-property hel-state :input-method)
-         (apply orig-fun args))
-        (t
-         (let ((current-input-method hel-input-method))
-           (apply orig-fun args)))))
-
-(hel-advice-add 'toggle-input-method :around #'hel--refresh-input-method-a)
 
 ;;; Keymaps
 
@@ -778,6 +677,269 @@ a Hel modal state. Can be a symbol or list of symbols.
     (setq hel-overriding-local-map (make-sparse-keymap)))
   (apply #'hel-keymap-set hel-overriding-local-map args)
   (hel-update-active-keymaps))
+
+;;; Command loop hooks
+
+(defun hel--pre-command-hook ()
+  "Hook run before each command is executed. See `pre-command-hook'."
+  (when (and hel--extend-selection (not mark-active))
+    (set-mark (point)))
+  (unless hel-executing-command-for-fake-cursor
+    (setq hel-this-command this-command)
+    (cond (hel-normal-state
+           (hel--single-undo-step-beginning))
+          (hel-insert-state
+           (hel--maybe-split-undo-step)))))
+
+(defun hel--post-command-hook ()
+  "Hook run after each command is executed. See `post-command-hook'."
+  (unless hel-executing-command-for-fake-cursor
+    (when (and hel-multiple-cursors-mode
+               (not (eq hel-this-command #'ignore))
+               ;; TODO: This condition skips keyboard macros. We need to handle
+               ;; them! They will generate actual commands that are also run in
+               ;; the command loop.
+               (functionp hel-this-command))
+      ;; Wrap in `condition-case' to protect this function from being removed
+      ;; from `post-command-hook', because the function throwing the error is
+      ;; unconditionally removed from it.
+      (condition-case err
+          (progn
+            (hel--execute-command-for-all-fake-cursors hel-this-command)
+            (when (hel--merge-cursors-p hel-this-command)
+              (hel-merge-overlapping-cursors)))
+        (error
+         (message "[Hel] error while executing command for fake cursor: %s"
+                  (error-message-string err)))
+        (quit))) ;; "C-g" during multistage command.
+    (when hel-normal-state
+      (condition-case err
+          (hel--single-undo-step-end)
+        (error
+         (message "[Hel] error while closing the undo step: %s"
+                  (error-message-string err)))))
+    (setq hel-this-command nil
+          hel--input-cache nil)
+    (hel-maybe-update-active-keymaps)))
+
+(put 'hel--pre-command-hook 'permanent-local-hook t)
+(put 'hel--post-command-hook 'permanent-local-hook t)
+
+;;; Undo
+
+(hel-defvar-local hel--in-single-undo-step nil
+  "Non-nil while we are in the single undo step.")
+
+(defun hel--single-undo-step-beginning ()
+  "Open an undo step.
+All following buffer modifications are grouped together as a single
+action. The step is terminated with `hel--single-undo-step-end'."
+  (unless (or hel--in-single-undo-step
+              (eq buffer-undo-list t))
+    (setq hel--in-single-undo-step t)
+    (when (car-safe buffer-undo-list)
+      (undo-boundary))
+    (setq hel--buffer-undo-list-pointer buffer-undo-list
+          hel-undo--cursors-positions (hel-cursors-positions))))
+
+(defun hel--single-undo-step-end ()
+  "Finalize undo step started by `hel--single-undo-step-beginning'."
+  (when hel--in-single-undo-step
+    (unwind-protect
+        (unless (or (eq buffer-undo-list t)
+                    (eq buffer-undo-list hel--buffer-undo-list-pointer)
+                    ;; Do not record undo step when the command replayed
+                    ;; the undo history instead of editing the buffer.
+                    ;;
+                    ;; Recognises a replay done by `undo'
+                    (hel--buffer-undo-list-tip-is-redo-record-p)
+                    ;; Recognises a replay done by `undo-redo'
+                    (not (hel--buffer-undo-list-pointer-reachable-p)))
+          (hel--merge-undo-step))
+      (setq hel--in-single-undo-step nil
+            hel--buffer-undo-list-pointer nil
+            hel-undo--cursors-positions nil))))
+
+(defun hel--buffer-undo-list-tip-is-redo-record-p ()
+  "Return non-nil if the tip of `buffer-undo-list' was produced by an undo.
+Emacs marks such records in `undo-equiv-table'."
+  (let ((undo-list buffer-undo-list))
+    (while (and (consp undo-list) (null (car undo-list)))
+      (setq undo-list (cdr undo-list)))
+    (gethash undo-list undo-equiv-table)))
+
+(defun hel--buffer-undo-list-pointer-reachable-p ()
+  "Return non-nil if `hel--buffer-undo-list-pointer' is still part of
+`buffer-undo-list'."
+  (let ((tail buffer-undo-list))
+    (while (and (consp tail)
+                (not (eq tail hel--buffer-undo-list-pointer)))
+      (setq tail (cdr tail)))
+    (eq tail hel--buffer-undo-list-pointer)))
+
+(defun hel--merge-undo-step ()
+  "Merge everything up to `hel--buffer-undo-list-pointer' in single undo step."
+  ;; Remove undo boundaries (nil elements) from `buffer-undo-list' withing
+  ;; current undo step. Also remove number entries -- they move point during
+  ;; undo, and we handle cursors positions manually to synchronize real cursor
+  ;; with fake ones.
+  (let ((undo-list (hel-destructive-filter
+                    (lambda (i) (or (numberp i) (null i)))
+                    buffer-undo-list
+                    hel--buffer-undo-list-pointer)))
+    (if (eq undo-list hel--buffer-undo-list-pointer)
+        ;; The command recorded nothing in undo list.
+        (setq buffer-undo-list undo-list)
+      ;; Else put on the both ends of the undo step records that hold the
+      ;; positions of every cursor, so that undo can put the cursors back.
+      (setq buffer-undo-list
+            (cons `(apply hel--undo-step-start ,(hel-cursors-positions))
+                  undo-list))
+      (let ((tail undo-list))
+        (while (not (eq (cdr tail) hel--buffer-undo-list-pointer))
+          (setq tail (cdr tail)))
+        (setcdr tail (cons `(apply hel--undo-step-end ,hel-undo--cursors-positions)
+                           hel--buffer-undo-list-pointer))))))
+
+(defun hel-commit-undo-checkpoint ()
+  "Finish current undo step and starts the new one.
+What was edited so far becomes one undo step, and what follows starts
+a new one."
+  (if hel--in-single-undo-step
+      (progn
+        (hel--single-undo-step-end)
+        (hel--single-undo-step-beginning))
+    (undo-boundary)))
+
+(defun hel-commit-undo-checkpoint-a (&rest _)
+  "Finish current undo step and starts the new one.
+For use as `:before' advice on a function that edits the buffer on its
+own, so that its edit becomes an undo step separate from the typing
+around it."
+  (hel-commit-undo-checkpoint))
+
+(defun hel--undo-split-between-p (previous current)
+  "Return non-nil if the undo step must be split between two operations.
+PREVIOUS and CURRENT are kinds as returned by `hel-undo--command-kind'."
+  (let ((spaces '(typing-first-space typing-consecutive-space))
+        (typing '(typing-other typing-first-space typing-consecutive-space)))
+    (cond
+     ;; Anything that is not typing starts a step of its own.
+     ((and (memq previous typing)
+           (not (memq current typing)))
+      t)
+     ;; A single space belongs to the word that follows it, so that one undo
+     ;; takes back a whole word:  "abc |d" does not split, "abc  |d" does.
+     ((eq previous 'typing-first-space)
+      nil)
+     ;; Typing, spacing and everything else are three different kinds.
+     (t
+      (let ((p (if (memq previous spaces) 'space previous))
+            (c (if (memq current spaces) 'space current)))
+        (not (eq p c)))))))
+
+(defun hel--maybe-split-undo-step ()
+  "Split the undo step when the kind of editing changes.
+Does nothing when `hel-want-fine-undo' is nil."
+  (when hel-want-fine-undo
+    (let ((previous hel-undo--previous-command-kind)
+          (current (hel-undo--command-kind)))
+      (setq hel-undo--previous-command-kind current)
+      (when (hel--undo-split-between-p previous current)
+        (hel-commit-undo-checkpoint)))))
+
+(defun hel-undo--command-kind ()
+  "Classify the command that is about to run, for `hel-want-fine-undo'.
+Return one of the symbols:
+- `typing-other'
+- `typing-first-space'
+- `typing-consecutive-space'
+- `other'."
+  (if (hel-self-insert-command-p this-command)
+      (if (eq last-command-event ?\s)
+          (if (memq hel-undo--previous-command-kind '(typing-first-space
+                                                      typing-consecutive-space))
+              'typing-consecutive-space
+            'typing-first-space)
+        'typing-other)
+    'other))
+
+(defun hel--undo-step-start (cursors-positions)
+  "This function always called from `buffer-undo-list' during undo by
+`primitive-undo' function. It is the first one from a pair of functions:
+`hel--undo-step-start' and `hel--undo-step-end', which are executed
+at beginning and end of a single undo step and restores real and fake
+cursors positions and regions after undo/redo step.
+
+CURSORS-POSITIONS is an alist returned by `hel-cursors-positions' function."
+  (push `(apply hel--undo-step-end ,cursors-positions)
+        buffer-undo-list))
+
+(defun hel--undo-step-end (cursors-positions)
+  "This function always called from `buffer-undo-list' during undo by
+`primitive-undo' function. It is the second one from a pair of functions:
+`hel--undo-step-start' and `hel--undo-step-end', which are executed
+at beginning and end of a single undo step and restores real and fake
+cursors positions and regions after undo/redo step.
+
+CURSORS-POSITIONS is an alist returned by `hel-cursors-positions' function."
+  (hel-place-cursors cursors-positions)
+  (push `(apply hel--undo-step-start ,cursors-positions)
+        buffer-undo-list))
+
+;;; Input-method
+
+(defun hel-activate-input-method ()
+  "Enable input method in Hel states with `:input-method' property set."
+  (when (and hel-local-mode hel-state)
+    (setq hel-input-method current-input-method)
+    (unless (hel-state-property hel-state :input-method)
+      (let ((input-method-activate-hook nil)
+            (input-method-deactivate-hook nil))
+        (deactivate-input-method)))))
+
+(defun hel-deactivate-input-method ()
+  "Disable input method in all states."
+  (setq hel-input-method nil))
+
+(put 'hel-activate-input-method 'permanent-local-hook t)
+(put 'hel-deactivate-input-method 'permanent-local-hook t)
+
+(defmacro hel-with-input-method (&rest body)
+  "Execute body with current input method active."
+  (declare (indent defun))
+  `(if hel-input-method
+       (unwind-protect
+           (progn
+             (remove-hook 'input-method-activate-hook #'hel-activate-input-method t)
+             (remove-hook 'input-method-deactivate-hook #'hel-deactivate-input-method t)
+             (prog2
+                 (activate-input-method hel-input-method)
+                 (progn ,@body)
+               (deactivate-input-method)))
+         (add-hook 'input-method-activate-hook #'hel-activate-input-method 90 t)
+         (add-hook 'input-method-deactivate-hook #'hel-deactivate-input-method 90 t))
+     ;; else
+     ,@body))
+
+(defun hel--with-input-method-a (orig-fun &rest args)
+  (hel-with-input-method
+    (apply orig-fun args)))
+
+(hel-advice-add 'read-char :around #'hel--with-input-method-a)
+;; (hel-advice-add 'read-char-from-minibuffer :around #'hel--with-input-method-a)
+
+(defun hel--refresh-input-method-a (orig-fun &rest args)
+  "Refresh `hel-input-method'."
+  (cond ((not hel-local-mode)
+         (apply orig-fun args))
+        ((hel-state-property hel-state :input-method)
+         (apply orig-fun args))
+        (t
+         (let ((current-input-method hel-input-method))
+           (apply orig-fun args)))))
+
+(hel-advice-add 'toggle-input-method :around #'hel--refresh-input-method-a)
 
 ;;; Cursor shape and color
 

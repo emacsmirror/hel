@@ -174,7 +174,9 @@ in the command loop, and the fake cursors can pick up on those instead."
 ;;;; Eglot
 
 (with-eval-after-load 'eglot
-  (add-hook 'eglot-managed-mode-hook #'hel-maybe-update-active-keymaps))
+  (add-hook 'eglot-managed-mode-hook #'hel-maybe-update-active-keymaps)
+  ;; A code action, a rename or a format.
+  (hel-advice-add 'eglot--apply-text-edits :before #'hel-commit-undo-checkpoint-a))
 
 ;;;; Eldoc
 
@@ -805,6 +807,12 @@ recorded action on it, suppressing confirmations and restarts."
     (setq hel--embark-action nil)
     (apply orig-fun args)))
 
+;;;; lsp-mode
+
+(with-eval-after-load 'lsp-mode
+  ;; A code action, a rename or a format.
+  (hel-advice-add 'lsp--apply-text-edits :before #'hel-commit-undo-checkpoint-a))
+
 ;;;; magit
 
 (defvar magit-blame-mode)
@@ -816,6 +824,18 @@ recorded action on it, suppressing confirmations and restarts."
               (if magit-blame-mode
                   (hel-emacs-state)
                 (hel-normal-state)))))
+
+;;;; tempel
+
+(with-eval-after-load 'tempel
+  (hel-advice-add 'tempel--insert :before #'hel-commit-undo-checkpoint-a))
+
+;;;; yasnippet
+
+(defvar yas-before-expand-snippet-hook)
+
+(with-eval-after-load 'yasnippet
+  (add-hook 'yas-before-expand-snippet-hook #'hel-commit-undo-checkpoint))
 
 ;;; .
 (provide 'hel-integration)

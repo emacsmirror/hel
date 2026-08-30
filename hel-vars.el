@@ -221,6 +221,18 @@ non-nil, its MODE-LINE-CONSTRUCTs are shown, in the same format as
   :type 'integer
   :group 'hel)
 
+(defcustom hel-want-fine-undo t
+  "Use more granular undo steps in Insert state.
+
+When non-nil, a single undo step finishes when the kind of editing
+changes: between typing and deleting and at word boundaries. Thus,
+a single undo typically removes roughly one word at a time.
+
+When nil, all text typed between entering and leaving Insert state is
+undone as a single step, as in Helix."
+  :type 'boolean
+  :group 'hel)
+
 (defcustom hel-want-zz-scroll-to-center nil
   "If non-nil `zz` keybinding will scroll current line to center of the screen.
 This variable must be set before Hel is loaded!"
@@ -612,11 +624,14 @@ The command that that will be executed for each fake cursor.")
   "The list of temporarily disabled minor-modes while there are
 multiple cursors.")
 
-(hel-defvar-local hel--undo-list-pointer nil
+(hel-defvar-local hel--buffer-undo-list-pointer nil
   "Stores the start of the current undo step in `buffer-undo-list'.")
 
-(hel-defvar-local hel--undo-cursors-positions nil
-  "Positions of all cursors as they were when the current undo step opened.")
+(hel-defvar-local hel-undo--cursors-positions nil
+  "Positions of all cursors at the beginning of current undo step.")
+
+(hel-defvar-local hel-undo--previous-command-kind 'other
+  "Kind of the previous editing command, as `hel-undo--command-kind' returns it.")
 
 (hel-defvar-local hel--cursors-positions-history nil)
 

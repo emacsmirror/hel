@@ -488,6 +488,12 @@ REST contains all other elements."
          (setq-local cursor-type nil)
          (lambda () (kill-local-variable 'cursor-type)))))
 
+(defun hel-self-insert-command-p (command)
+  "Return non-nil if COMMAND inserts the character that was typed.
+A major mode may remap `self-insert-command' like Org mode does."
+  (or (eq command 'self-insert-command)
+      (eq command (command-remapping 'self-insert-command))))
+
 ;;; Motions
 
 (defun hel-forward-following-thing (thing &optional count)
