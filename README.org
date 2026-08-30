@@ -184,9 +184,43 @@ alternatives in Emacs.
 - When you search backward with =?= command, while hints are active =n= and =N= keys
   are swapped: =n= will repeat search backward and =N= — forward, like in Vim.
 
+** Undo
+*** Undo tree
+
+Helix stores undo history in a tree, which you can traverse with =M-u= /
+=M-U=. Emacs' undo history can also be represented as a tree. Hel doesn't
+provide =M-u=, =M-U= commands, but there is an even better option — the
+excellent [[https://elpa.gnu.org/packages/vundo.html][vundo]] package, which gives you a real undo-tree UI.
+
+([[https://elpa.gnu.org/packages/undo-tree.html][undo-tree]] is not supported — it implements its own undo system instead of
+using Emacs' native one.)
+
+*** Using custom undo commands
+
+You can use your own undo commands, for example [[https://codeberg.org/ideasman42/emacs-undo-fu][undo-fu]]:
+
+#+begin_src emacs-lisp
+(hel-keymap-global-set :state 'normal
+  "u" #'undo-fu-only-undo
+  "U" #'undo-fu-only-redo)
+#+end_src
+
+But they must meet two conditions: they must work with the native Emacs
+undo system, and they must deactivate the mark before undoing.
+
+#+begin_quote
+[!IMPORTANT]
+Hel doesn't support Emacs' undo in region. It conflicts with multiple
+cursors, and in Normal state a selection is active most of the time, so
+region-aware undo by default makes no sense. Undo commands must therefore
+deactivate the mark before undoing.
+#+end_quote
+
+=undo-fu= deactivates the mark by default (see ~undo-fu-allow-undo-in-region~).
+
 ** Commands that are not implemented
 
-- =M-u=, =M-U= — traverse undo tree
+- =M-u=, =M-U= — traverse undo tree. See [[* Undo tree][undo tree]] section.
 - =q=, =Q= — record keyboard macros
 
 ** Extensions

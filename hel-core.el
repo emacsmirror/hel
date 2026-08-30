@@ -459,8 +459,7 @@ It is likely that you need `hel-maybe-update-active-keymaps' instead."
                      (hel-state-property state :keymap))))))
 
 (defun hel--keymap-fingerprint-changed-p ()
-  "Return non-nil if `hel-mode-map-alist' must be rebuilt.
-"
+  "Return non-nil if `hel-mode-map-alist' must be rebuilt."
   (let* ((needed (+ 10 (* 2 (+ (length minor-mode-overriding-map-alist)
                                (length minor-mode-map-alist)))))
          (vec (if (and hel--keymap-fingerprint

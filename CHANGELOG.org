@@ -7,6 +7,17 @@
   the =*xref*= or =*grep*= buffer to switch to them and =ZZ= to apply changes and
   return back to read-only mode.
 
+- ~hel-want-fine-undo~ option (default ~t~) — use more granular undo steps
+  compare to Helix. When ~nil~ all text typed in Insert state is undone as
+  a single step, as in Helix. When ~t~ in insert state on typing a single undo
+  step finishes at word boundary or when the kind of editing changes between
+  typing and deleting. Thus, a single undo typically removes one word.
+
+- ~hel-commit-undo-checkpoint~ — interactive command that finishes the current
+  undo step and starts the new one. Helix has it on =C-s= in insert state.
+  Hel doesn't bind it by default, to leave the default Emacs experience in
+  insert state.
+
 ** Changed
 
 - Active keymaps were rescanned for Hel’s nested keymaps only at a handful of

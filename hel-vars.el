@@ -222,11 +222,11 @@ non-nil, its MODE-LINE-CONSTRUCTs are shown, in the same format as
   :group 'hel)
 
 (defcustom hel-want-fine-undo t
-  "Use more granular undo steps in Insert state.
+  "Use more granular undo steps compare to Helix.
 
-When non-nil, a single undo step finishes when the kind of editing
-changes: between typing and deleting and at word boundaries. Thus,
-a single undo typically removes roughly one word at a time.
+When non-nil on typing in Insert state a single undo step finishes at
+word boundary or when the kind of editing changes between typing and
+deleting. Thus, a single undo typically removes one word.
 
 When nil, all text typed between entering and leaving Insert state is
 undone as a single step, as in Helix."
@@ -633,7 +633,8 @@ multiple cursors.")
 (hel-defvar-local hel-undo--previous-command-kind 'other
   "Kind of the previous editing command, as `hel-undo--command-kind' returns it.")
 
-(hel-defvar-local hel--cursors-positions-history nil)
+(hel-defvar-local hel--cursors-positions-history nil
+  "For `hel-restore-cursors'.")
 
 (hel-defvar-local hel--input-cache nil)
 

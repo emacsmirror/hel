@@ -111,9 +111,21 @@ the structure and examples.
 - ~hel-want-minibuffer~ ::
   Whether to enable Hel in minibuffer.
 
+- ~hel-want-fine-undo~ ::
+  Use more granular undo steps compare to Helix.
+
+  When ~nil~, all text typed in Insert state is undone as a single step, as
+  in Helix.
+
+  When ~t~ on typing in Insert state a single undo step finishes at word
+  boundary or when the kind of editing changes between typing and deleting.
+  Thus, a single undo typically removes one word.
+
+  Default ~t~.
+
 - ~hel-want-C-hjkl-keys~ ::
-  If non-nil, bind =C-h=, =C-j=, =C-k=, =C-l= for AST navigation. Use =F1= instead of =C-h=
-  for help.
+  If non-nil, bind =C-h=, =C-j=, =C-k=, =C-l= for AST navigation. Use =F1= instead
+  of =C-h= for help.
 
   #+begin_quote
   [!WARNING]
