@@ -566,9 +566,8 @@ Default value is 0 - scroll half the screen.")
 (defvar hel-undo-commands '(hel-undo hel-redo undo undo-redo)
   "Commands that implement undo/redo functionality.")
 
-(hel-defvar-local hel--cursors-table
-  (make-hash-table :test 'eql :weakness t)
-  "Table mapping fake cursors IDs to cursors overlays.")
+(hel-defvar-local hel--cursors-table nil
+  "Hash table mapping fake cursors IDs to cursors overlays.")
 
 (defvar hel--fake-cursor-last-used-id 0
   "Last used fake cursor ID.")

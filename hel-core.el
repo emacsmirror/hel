@@ -63,6 +63,7 @@
         ;; Just push the symbol into `emulation-mode-map-alists'.
         ;; We will update its content on every Hel state change.
         (cl-pushnew 'hel-mode-map-alist emulation-mode-map-alists)
+        (setq-local hel--cursors-table (make-hash-table :test 'eql :weakness t))
         (hel-load-whitelists)
         (add-hook 'pre-command-hook  #'hel--pre-command-hook 90 t)
         (add-hook 'post-command-hook #'hel--post-command-hook 90 t)
