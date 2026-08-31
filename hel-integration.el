@@ -216,7 +216,7 @@ in the command loop, and the fake cursors can pick up on those instead."
                        (1 'font-lock-keyword-face)
                        (2 'font-lock-function-name-face nil t))
                       (,(concat "^\\s-*("
-                                (regexp-opt '("hel-defvar-local") t)
+                                (regexp-opt '("hel-defvar-permanent-local") t)
                                 "\\s-+\\(" (rx lisp-mode-symbol) "\\)")
                        (1 'font-lock-keyword-face)
                        (2 'font-lock-variable-name-face nil t)))))
@@ -234,7 +234,7 @@ in the command loop, and the fake cursors can pick up on those instead."
   (dolist (i (eval-when-compile
                `(("Variables"
                   ,(concat "^\\s-*("
-                           (regexp-opt '("hel-defvar-local") t)
+                           (regexp-opt '("hel-defvar-permanent-local") t)
                            "\\s-+\\(" (rx lisp-mode-symbol) "\\)")
                   2)
                  (nil ;; top level

@@ -39,7 +39,7 @@
   :group 'emulations
   :prefix 'hel-)
 
-(defmacro hel-defvar-local (symbol &optional initvalue docstring)
+(defmacro hel-defvar-permanent-local (symbol &optional initvalue docstring)
   "The same as `defvar-local' but additionaly marks SYMBOL as permanent
 buffer local variable."
   (declare (indent defun)
@@ -339,7 +339,7 @@ If this value is nil, there is no ceiling."
 then one cursor in the buffer.")
 
 ;; TODO: add examples with `elisp-demos' package
-(hel-defvar-local hel-surround-alist
+(defvar-local hel-surround-alist
   '((?\) :insert ("(" . ")")
          :remove ("(" . ")") :balanced t)
     (?\} :insert ("{" . "}")
@@ -499,23 +499,23 @@ list of categories."
 
 ;;; Variables
 
-(hel-defvar-local hel-mode-map-alist nil
+(hel-defvar-permanent-local hel-mode-map-alist nil
   "Association list of keymaps for current Hel state.
 This symbol lies in `emulation-mode-map-alists', so Emacs reads it on every
 key sequence.  Elements have the form (MODE . KEYMAP), with the first keymaps
 having higher priority.  An element applies only while the value of MODE is
 non-nil; MODE is t for a keymap that has no such variable.")
 
-(hel-defvar-local hel--keymap-fingerprint nil
+(hel-defvar-permanent-local hel--keymap-fingerprint nil
   "Vector holding the inputs `hel-mode-map-alist' was last built from.")
 
-(hel-defvar-local hel--keymap-fingerprint-length 0
+(hel-defvar-permanent-local hel--keymap-fingerprint-length 0
   "Number of significant slots in `hel--keymap-fingerprint'.")
 
-(hel-defvar-local hel-state nil
+(hel-defvar-permanent-local hel-state nil
   "The current Hel state.")
 
-(hel-defvar-local hel-previous-state nil
+(hel-defvar-permanent-local hel-previous-state nil
   "The previous Hel state.")
 
 (defvar hel-state-properties nil
@@ -539,24 +539,21 @@ use `hel-state-property' function.
 `:modes'         List of major and minor modes for which Hel intial state
                is STATE.")
 
-(hel-defvar-local hel-input-method nil
+(hel-defvar-permanent-local hel-input-method nil
   "Input method used in Hel Insert state.")
 
-(hel-defvar-local hel-overriding-local-map nil)
+(hel-defvar-permanent-local hel-overriding-local-map nil)
 
-(hel-defvar-local hel--extend-selection nil
+(hel-defvar-permanent-local hel--extend-selection nil
   "When this flag is set motions will extend selection.")
 
-(hel-defvar-local hel-selection-history nil
+(hel-defvar-permanent-local hel-selection-history nil
   "The history of selections.")
 
-(hel-defvar-local hel--insert-pos nil
-  "The location of the point where we last time switched to Insert state.")
-
-(hel-defvar-local hel--region-was-active-on-insert nil
+(hel-defvar-permanent-local hel--region-was-active-on-insert nil
   "Whether region was active when we last time switched to Insert state.")
 
-(hel-defvar-local hel-scroll-count 0
+(hel-defvar-permanent-local hel-scroll-count 0
   "Hold last used prefix for `hel-scroll-up' and `hel-scroll-down' commands.
 Determine how many lines should be scrolled.
 Default value is 0 - scroll half the screen.")
@@ -575,7 +572,7 @@ Default value is 0 - scroll half the screen.")
   (defvar savehist-additional-variables)
   (add-to-list 'savehist-additional-variables 'hel-regex-history))
 
-(hel-defvar-local hel--cursors-table nil
+(hel-defvar-permanent-local hel--cursors-table nil
   "Hash table mapping fake cursors IDs to cursors overlays.")
 
 (defvar hel--fake-cursor-last-used-id 0
@@ -613,37 +610,37 @@ Default value is 0 - scroll half the screen.")
 (defvar hel--whitelist-file-loaded nil
   "Non-nil when `hel-whitelist-file' file has already been loaded.")
 
-(hel-defvar-local hel-this-command nil
+(defvar-local hel-this-command nil
   "Like `this-command' but for fake cursors.
 The command that that will be executed for each fake cursor.")
 
-(hel-defvar-local hel-executing-command-for-fake-cursor nil
+(defvar hel-executing-command-for-fake-cursor nil
   "Non-nil if `this-command' is currently executing for fake cursor.")
 
-(hel-defvar-local hel--temporarily-disabled-minor-modes nil
+(hel-defvar-permanent-local hel--temporarily-disabled-minor-modes nil
   "The list of temporarily disabled minor-modes while there are
 multiple cursors.")
 
-(hel-defvar-local hel--buffer-undo-list-pointer nil
+(hel-defvar-permanent-local hel--buffer-undo-list-pointer nil
   "Stores the start of the current undo step in `buffer-undo-list'.")
 
-(hel-defvar-local hel-undo--cursors-positions nil
+(hel-defvar-permanent-local hel-undo--cursors-positions nil
   "Positions of all cursors at the beginning of current undo step.")
 
-(hel-defvar-local hel-undo--previous-command-kind 'other
+(hel-defvar-permanent-local hel-undo--previous-command-kind 'other
   "Kind of the previous editing command, as `hel-undo--command-kind' returns it.")
 
-(hel-defvar-local hel--cursors-positions-history nil
+(hel-defvar-permanent-local hel--cursors-positions-history nil
   "For `hel-restore-cursors'.")
 
-(hel-defvar-local hel--input-cache nil)
+(defvar-local hel--input-cache nil)
 
-(hel-defvar-local hel-search--direction nil)
-(hel-defvar-local hel-search--session nil)
-(hel-defvar-local hel-search--current nil)
-(hel-defvar-local hel-search--total nil)
+(hel-defvar-permanent-local hel-search--direction nil)
+(hel-defvar-permanent-local hel-search--session nil)
+(hel-defvar-permanent-local hel-search--current nil)
+(hel-defvar-permanent-local hel-search--total nil)
 
-(hel-defvar-local hel--narrowed-base-buffer nil)
+(hel-defvar-permanent-local hel--narrowed-base-buffer nil)
 
 ;;; .
 (provide 'hel-vars)

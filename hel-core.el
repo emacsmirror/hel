@@ -245,7 +245,7 @@ Also two hooks are defined which are run each time Hel enter or exit STATE:
     ;; macro expansion
     `(progn
        ;; State variable
-       (hel-defvar-local ,variable nil ,(format "Non nil if Hel is in %s." state-name))
+       (hel-defvar-permanent-local ,variable nil ,(format "Non nil if Hel is in %s." state-name))
        ;; Hooks
        (defvar ,enter-hook nil ,(format "Hooks to run on entry %s." state-name))
        (defvar ,exit-hook  nil ,(format "Hooks to run on exit %s." state-name))
@@ -729,7 +729,7 @@ a Hel modal state. Can be a symbol or list of symbols.
 
 ;;; Undo
 
-(hel-defvar-local hel--in-single-undo-step nil
+(hel-defvar-permanent-local hel--in-single-undo-step nil
   "Non-nil while we are in the single undo step.")
 
 (defun hel--single-undo-step-beginning ()
