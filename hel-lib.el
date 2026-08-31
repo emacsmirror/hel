@@ -188,7 +188,7 @@ logical line on desired end of the region."
        (save-excursion (goto-char (region-end))
                        (hel-visual-bolp))))
 
-(defun hel-whitespace? (char)
+(defun hel-whitespace-p (char)
   "Non-nil when CHAR belongs to whitespace syntax class."
   (and (eql (char-syntax char) ?\s)
        (not (memq char '(?\r ?\n))))
@@ -582,7 +582,7 @@ Move over visual line when `visual-line-mode' is active."
   (cl-assert (< 0 count))
   (skip-chars-forward "\r\n")
   (hel-set-region (if hel--extend-selection (mark) (point))
-                  (progn (when (hel-whitespace? (following-char))
+                  (progn (when (hel-whitespace-p (following-char))
                            (cl-decf count))
                          (forward-thing thing count)
                          (hel-skip-whitespaces)
