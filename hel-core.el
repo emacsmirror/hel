@@ -64,6 +64,7 @@
         ;; We will update its content on every Hel state change.
         (cl-pushnew 'hel-mode-map-alist emulation-mode-map-alists)
         (setq-local hel--cursors-table (make-hash-table :test 'eql :weakness t))
+        (hel--check-if-cursor-is-hidden)
         (hel-load-whitelists)
         (add-hook 'pre-command-hook  #'hel--pre-command-hook 90 t)
         (add-hook 'post-command-hook #'hel--post-command-hook 90 t)
@@ -109,6 +110,7 @@
         (when hel-want-minibuffer
           (add-hook 'minibuffer-setup-hook #'hel-local-mode))
         (add-hook 'window-buffer-change-functions #'hel--fundamental-mode-hack)
+        (add-hook 'change-major-mode-after-body-hook #'hel--check-if-cursor-is-hidden)
         (add-hook 'window-configuration-change-hook #'hel-update-cursor)
         (add-hook 'enable-theme-functions  #'hel--on-theme-change)
         (add-hook 'disable-theme-functions #'hel--on-theme-change)
@@ -124,6 +126,7 @@
              do (advice-remove fun advice))
     (remove-hook 'minibuffer-setup-hook #'hel-local-mode)
     (remove-hook 'window-buffer-change-functions #'hel--fundamental-mode-hack)
+    (remove-hook 'change-major-mode-after-body-hook #'hel--check-if-cursor-is-hidden)
     (remove-hook 'window-configuration-change-hook #'hel-update-cursor)
     (remove-hook 'enable-theme-functions  #'hel--on-theme-change)
     (remove-hook 'disable-theme-functions #'hel--on-theme-change)))
@@ -942,17 +945,23 @@ CURSORS-POSITIONS is an alist returned by `hel-cursors-positions' function."
 
 ;;; Cursor shape and color
 
-;; set-window-cursor-type
-;; window-cursor-type
+(defvar-local hel--cursor-hidden? nil
+  "Whether the major mode of the current buffer hides the cursor.")
+
+(defun hel--check-if-cursor-is-hidden ()
+  "Remember whether the major mode of the current buffer hides the cursor."
+  (setq hel--cursor-hidden? (and (local-variable-p 'cursor-type)
+                                 (null cursor-type))))
 
 (defun hel-update-cursor ()
-  "Update the main cursor appearence in current buffer according to
+  "Update the main cursor appearance in the selected window according to
 current Hel state."
-  (when (eq (window-buffer) (current-buffer))
-    (when-let* ((hel-local-mode)
-                (x (hel-state-property hel-state :cursor)))
+  (when (and (eq (window-buffer) (current-buffer))
+             hel-local-mode
+             (not hel--cursor-hidden?))
+    (when-let* ((x (hel-state-property hel-state :cursor)))
       (if (proper-list-p x)
-          (-each x #'hel-set-cursor)
+          (mapc #'hel-set-cursor x)
         (funcall #'hel-set-cursor x)))))
 
 (defun hel-set-cursor (arg)
