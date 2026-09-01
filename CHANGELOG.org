@@ -1,12 +1,6 @@
 * [Unreleased]
 ** Added
 
-- Integration with [[https://eshelyaron.com/posts/2023-11-17-completion-preview-in-emacs.html][completion-preview-mode]].
-
-- Integration with ~xref-edit-mode~ and ~grep-edit-mode~ (Emacs 31). Press =i= in
-  the =*xref*= or =*grep*= buffer to switch to them and =ZZ= to apply changes and
-  return back to read-only mode.
-
 - ~hel-want-fine-undo~ option (default ~t~) — use more granular undo steps
   compare to Helix. When ~nil~ all text typed in Insert state is undone as
   a single step, as in Helix. When ~t~ in insert state on typing a single undo
@@ -17,6 +11,14 @@
   undo step and starts the new one. Helix has it on =C-s= in insert state.
   Hel doesn't bind it by default, to leave the default Emacs experience in
   insert state.
+
+- Display current state in the modeline.
+
+- Integration with ~xref-edit-mode~ and ~grep-edit-mode~ (Emacs 31). Press =i= in
+  the =*xref*= or =*grep*= buffer to switch to them and =ZZ= to apply changes and
+  return back to read-only mode.
+
+- Integration with [[https://eshelyaron.com/posts/2023-11-17-completion-preview-in-emacs.html][completion-preview-mode]].
 
 ** Changed
 

@@ -758,6 +758,8 @@ on sign of COUNT."
   "Move point COUNT sexps forward (backward if COUNT is negative).
 Returns the count of sexps left to move, positive or negative depending
 on sign of COUNT."
+  ;; Make binding only during this motion instead of global one, because some
+  ;; major-modes rely on the jump to the buffer end.
   (let ((forward-sexp-function
          (if (memq forward-sexp-function '(forward-sexp-default-function nil))
              #'hel-forward-sexp-only
