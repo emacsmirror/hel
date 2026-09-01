@@ -127,7 +127,8 @@
     (remove-hook 'change-major-mode-after-body-hook #'hel--check-if-cursor-is-hidden)
     (remove-hook 'window-configuration-change-hook #'hel-update-cursor)
     (remove-hook 'enable-theme-functions  #'hel--on-theme-change)
-    (remove-hook 'disable-theme-functions #'hel--on-theme-change)))
+    (remove-hook 'disable-theme-functions #'hel--on-theme-change)
+    (cl-callf2 delq 'hel-mode-line-info mode-line-misc-info)))
 
 (defun hel--initialize ()
   "Turn on `hel-local-mode' in current buffer if appropriate."
