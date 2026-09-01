@@ -758,17 +758,23 @@ on sign of COUNT."
   "Move point COUNT sexps forward (backward if COUNT is negative).
 Returns the count of sexps left to move, positive or negative depending
 on sign of COUNT."
-  (hel-motion-loop (dir (or count 1))
-    (ignore-errors
-      (forward-sexp dir))))
+  (let ((forward-sexp-function
+         (if (memq forward-sexp-function '(forward-sexp-default-function nil))
+             #'hel-forward-sexp-only
+           ;; Do not rebind in modes that use their own version of
+           ;; `forward-sexp-function' (`c-mode', `python-mode').
+           forward-sexp-function)))
+    (hel-motion-loop (dir (or count 1))
+      (ignore-errors
+        (forward-sexp dir)))))
 
 (put 'hel-sexp 'forward-op #'hel--forward-sexp)
 
 (defun hel-forward-sexp-only (&optional count)
   "Move forward across COUNT balanced expressions (sexps).
-This function is used as `forward-sexp-function' by `hel-mode'.
-Unlike `forward-sexp', it does not move to the end of the buffer when
-there is no sexp ahead.
+Hel binds `forward-sexp-function' to this function during its own sexp
+motions.  Unlike the default `forward-sexp' behavior, it does not move to
+the end of the buffer when there is no sexp ahead.
 
 Signal `scan-error' when there is no sexp to move over. The error
 arguments follow the format used by `forward-sexp'."

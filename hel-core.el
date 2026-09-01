@@ -102,8 +102,7 @@
   :group 'hel
   (if hel-mode
       (progn
-        (setq forward-sexp-function #'hel-forward-sexp-only
-              scroll-conservatively 101
+        (setq scroll-conservatively 101
               scroll-margin 0)
         (dolist (fun-how-advice hel--advices)
           (apply #'advice-add fun-how-advice))
@@ -119,8 +118,7 @@
         (-each (frame-list) #'hel-setup-terminal-keys)
         (add-hook 'after-make-frame-functions #'hel-setup-terminal-keys))
     ;; else
-    (setq forward-sexp-function nil
-          scroll-conservatively (custom--standard-value 'scroll-conservatively)
+    (setq scroll-conservatively (custom--standard-value 'scroll-conservatively)
           scroll-margin (custom--standard-value 'scroll-margin))
     (cl-loop for (fun _how advice) in hel--advices
              do (advice-remove fun advice))
