@@ -765,13 +765,21 @@ on sign of COUNT."
 (put 'hel-sexp 'forward-op #'hel--forward-sexp)
 
 (defun hel-forward-sexp-only (&optional count)
-  "Move forward across one balanced expression (sexp).
-The value `hel-mode' gives to `forward-sexp-function'.  Unlike the standard
-`forward-sexp' behavior, this one stays in place instead of moving to the end
-of the buffer when there is no sexp ahead."
-  (when-let* ((pos (scan-sexps (point) count)))
-    (goto-char pos)
-    (if (< count 0) (backward-prefix-chars))))
+  "Move forward across COUNT balanced expressions (sexps).
+This function is used as `forward-sexp-function' by `hel-mode'.
+Unlike `forward-sexp', it does not move to the end of the buffer when
+there is no sexp ahead.
+
+Signal `scan-error' when there is no sexp to move over. The error
+arguments follow the format used by `forward-sexp'."
+  (or count (setq count 1))
+  (if-let* ((pos (scan-sexps (point) count)))
+      (progn
+        (goto-char pos)
+        (if (< count 0) (backward-prefix-chars)))
+    (signal 'scan-error (if (< count 0)
+                            (list "No previous sexp" (point-min) (point))
+                          (list "No next sexp" (point) (point-max))))))
 
 ;;;; `hel-comment'
 
