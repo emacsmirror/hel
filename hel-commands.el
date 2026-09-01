@@ -1645,9 +1645,9 @@ contains a newline character, they are inserted on separate lines."
           (goto-char end)
           (insert right)
           (when linewise? (newline))
-          (indent-region beg end)
-          (set-marker beg nil)
-          (set-marker end nil))))
+          (indent-region beg end))
+        (set-marker beg nil)
+        (set-marker end nil)))
     (hel-extend-selection -1)))
 
 ;; md
