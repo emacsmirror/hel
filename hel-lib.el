@@ -4,7 +4,7 @@
 ;;
 ;; Author: Yuriy Artemyev <anuvyklack@gmail.com>
 ;; Maintainer: Yuriy Artemyev <anuvyklack@gmail.com>
-;; Version: 0.12.0
+;; Version: 0.13.0
 ;; Homepage: https://github.com/helheim-emacs/hel
 ;; SPDX-License-Identifier: GPL-3.0-or-later
 ;;

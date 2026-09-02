@@ -5,7 +5,7 @@
 ;; Author: Yuriy Artemyev <anuvyklack@gmail.com>
 ;; Maintainer: Yuriy Artemyev <anuvyklack@gmail.com>
 ;; Created: March 27, 2025
-;; Version: 0.12.0
+;; Version: 0.13.0
 ;; Homepage: https://github.com/helheim-emacs/hel
 ;; Package-Requires: ((emacs "29.1") (dash "2.19.1") (avy "0.5.0") (pcre2el "1.12") (ultra-scroll "0.6"))
 ;; SPDX-License-Identifier: GPL-3.0-or-later

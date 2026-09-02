@@ -1,4 +1,4 @@
-* [Unreleased]
+* [0.13.0]
 ** Added
 
 - ~hel-want-fine-undo~ option (default ~t~) — use more granular undo steps
