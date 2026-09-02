@@ -167,6 +167,14 @@ Hel is in Emacs state. All other attributes are ignored."
   "Face for lazy highlighting all matches during search."
   :group 'hel)
 
+(defface hel-normal-state-tag '((t :inherit mode-line-emphasis))
+  "Face for the Normal state tag in the mode line."
+  :group 'hel)
+
+(defface hel-insert-state-tag '((t :inherit warning)) ; success
+  "Face for the Insert state tag in the mode line."
+  :group 'hel)
+
 ;;; Customizable variables
 
 (defvar hel-mode nil)
@@ -537,7 +545,10 @@ use `hel-state-property' function.
                in STATE.
 
 `:modes'         List of major and minor modes for which Hel intial state
-               is STATE.")
+               is STATE.
+
+`:tag'           Mode-line tag for STATE.  A string, or a zero-argument
+               function returning a string.")
 
 (hel-defvar-permanent-local hel-input-method nil
   "Input method used in Hel Insert state.")

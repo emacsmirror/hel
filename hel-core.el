@@ -64,7 +64,6 @@
         ;; We will update its content on every Hel state change.
         (cl-pushnew 'hel-mode-map-alist emulation-mode-map-alists)
         (setq-local hel--cursors-table (make-hash-table :test 'eql :weakness t))
-        (hel--check-if-cursor-is-hidden)
         (hel-load-whitelists)
         (add-hook 'pre-command-hook  #'hel--pre-command-hook 90 t)
         (add-hook 'post-command-hook #'hel--post-command-hook 90 t)
@@ -72,6 +71,7 @@
         (setq hel-input-method current-input-method)
         (add-hook 'input-method-activate-hook #'hel-activate-input-method 90 t)
         (add-hook 'input-method-deactivate-hook #'hel-deactivate-input-method 90 t)
+        (hel--check-if-cursor-is-hidden)
         (hel-switch-state (hel-initial-state)))
     ;; else
     (remove-hook 'post-command-hook #'hel--post-command-hook t)
@@ -113,10 +113,10 @@
         (add-hook 'window-configuration-change-hook #'hel-update-cursor)
         (add-hook 'enable-theme-functions  #'hel--on-theme-change)
         (add-hook 'disable-theme-functions #'hel--on-theme-change)
-        (add-to-list 'mode-line-misc-info 'hel-mode-line-info)
         ;; Setup ESC, C-i and C-m keys
         (-each (frame-list) #'hel-setup-terminal-keys)
-        (add-hook 'after-make-frame-functions #'hel-setup-terminal-keys))
+        (add-hook 'after-make-frame-functions #'hel-setup-terminal-keys)
+        (hel-setup-mode-line))
     ;; else
     (setq scroll-conservatively (custom--standard-value 'scroll-conservatively)
           scroll-margin (custom--standard-value 'scroll-margin))
@@ -128,7 +128,7 @@
     (remove-hook 'window-configuration-change-hook #'hel-update-cursor)
     (remove-hook 'enable-theme-functions  #'hel--on-theme-change)
     (remove-hook 'disable-theme-functions #'hel--on-theme-change)
-    (cl-callf2 delq 'hel-mode-line-info mode-line-misc-info)))
+    (hel-setup-mode-line :remove)))
 
 (defun hel--initialize ()
   "Turn on `hel-local-mode' in current buffer if appropriate."
@@ -220,6 +220,10 @@ Optional KEY keyword arguments:
                state is STATE. Use `hel-set-initial-state' to register
                additional modes later.
 
+`:tag'           Mode-line tag shown while Hel is in STATE.  Either a string,
+               or a zero-argument function returning a string. Can be accessed
+               later via `hel-state-property' function.
+
 Also two hooks are defined which are run each time Hel enter or exit STATE:
 - `hel-STATE-state-enter-hook'
 - `hel-STATE-state-exit-hook'
@@ -240,7 +244,7 @@ Also two hooks are defined which are run each time Hel enter or exit STATE:
           ;; collect keywords
           ((kwargs . body) (hel-split-keyword-args body))
           ((&plist :keymap keymap-value
-                   :cursor :input-method :modes) kwargs))
+                   :cursor :input-method :modes :tag) kwargs))
     ;; macro expansion
     `(progn
        ;; State variable
@@ -259,7 +263,8 @@ Also two hooks are defined which are run each time Hel enter or exit STATE:
                    :keymap       ,keymap
                    :cursor       ,cursor
                    :input-method ,input-method
-                   :modes        ,modes))
+                   :modes        ,modes
+                   :tag          ,tag))
        ;; State function
        (defun ,symbol (&optional arg)
          ,(format "Switch Hel to %s.
@@ -397,10 +402,43 @@ MODE and STATE should be symbols."
                        (map-elt state)
                        (map-elt :modes))))
 
+(defun hel-setup-mode-line (&optional remove?)
+  ;; state tag
+  (cl-symbol-macrolet
+      ((section '(hel-local-mode (:eval (hel-state-mode-line-tag))))
+       (modeline (default-value 'mode-line-format)))
+    (cond (remove?
+           (setq-default mode-line-format (remove section modeline)))
+          ((not (member section modeline))
+           (setq-default mode-line-format (cons section modeline)))))
+  ;; number of cursors, search info
+  (let ((section '(hel-local-mode hel-mode-line-info)))
+    (if remove?
+        (cl-callf2 remove section mode-line-misc-info)
+      (add-to-list 'mode-line-misc-info section))))
+
+(cl-defun hel-state-mode-line-tag (&optional (state hel-state))
+  "Return the STATE tag for modeline."
+  (when state
+    (let ((tag (pcase (hel-state-property state :tag)
+                 ((and (pred functionp) fun)
+                  (funcall fun))
+                 (tag tag)))
+          (face (let ((face (intern (format "hel-%s-state-tag" state))))
+                  (if (facep face)
+                      face
+                    'mode-line-emphasis))))
+      (when (stringp tag)
+        (propertize tag
+                    'face face
+                    'help-echo (hel-state-property state :name)
+                    'mouse-face 'mode-line-highlight)))))
+
 ;;; Normal, Insert and Emacs states
 
 (hel-define-state normal
   "Normal state."
+  :tag " NORMAL"
   :keymap (define-keymap :full t :suppress t)
   :cursor (list hel-normal-state-cursor-type
                 (lambda ()
@@ -410,6 +448,7 @@ MODE and STATE should be symbols."
 
 (hel-define-state insert
   "Insert state."
+  :tag " INSERT"
   :cursor (list hel-insert-state-cursor-type
                 'hel-insert-state-main-cursor) ; face
   :input-method t
