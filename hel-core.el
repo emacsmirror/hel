@@ -326,9 +326,17 @@ When ARG is non-positive integer and Hel is in %s — disable it.\n\n%s"
 (defun hel-state-property (state property)
   "Return the value of PROPERTY for STATE.
 PROPERTY is a keyword as used by `hel-define-state'.
-STATE is the state's symbolic name."
+STATE is the state's symbolic name.
+
+`hel-state-property' is a generalized variable, i.e. and you can use it as
+PLACE in `setf'."
   (-> (alist-get state hel-state-properties)
       (plist-get property)))
+
+(gv-define-setter hel-state-property (value state property)
+  `(setf (-> (alist-get ,state hel-state-properties)
+             (plist-get ,property))
+         ,value))
 
 (defun hel-initial-state (&optional buffer)
   "Return the state in which Hel should start in BUFFER."
