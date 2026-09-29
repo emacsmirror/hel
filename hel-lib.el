@@ -964,6 +964,49 @@ cons cell (LEFT . RIGHT) with strings to insert."
      (cons (char-to-string char)
            (char-to-string char)))))
 
+(cl-defun hel-surround-read-tag (&optional (prompt "tag: "))
+  "Read an HTML tag with PROMPT and return the cons cell (OPENING . CLOSING).
+The input is a tag name with optional attributes, such as `div class=\"box\"'.
+If the selection is linewise, both tags end with a newline."
+  (let* ((input (string-trim (read-string prompt)))
+         (name (car (split-string input))))
+    (unless name
+      (user-error "Empty tag name"))
+    (let ((newline (if (hel-linewise-selection-p) "\n" "")))
+      (cons (concat "<" input ">" newline)
+            (concat "</" name ">" newline)))))
+
+(defun hel-surround-4-bounds-of-html-tag-at-point (&optional name)
+  "Return 4 bounds of the HTML tag NAME around point, or nil.
+If NAME is nil or empty string, match the nearest tag pair.
+The result is the list (LEFT-BEG LEFT-END RIGHT-BEG RIGHT-END).
+Nested tag pairs are skipped. Self-closing tags like <br/> do not count
+as opening tags."
+  (let ((open (if (member name '(nil ""))
+                  "<[[:alpha:]]\\(?:[^<>]*[^/<>]\\)?>"
+                (concat "<" (regexp-quote name)
+                        "\\(?:[[:space:]]\\(?:[^<>]*[^/<>]\\)?\\)?>")))
+        (close (if (member name '(nil ""))
+                   "</[^<>]+>"
+                 (concat "</" (regexp-quote name) "[[:space:]]*>"))))
+    (save-excursion
+      ;; Point inside a tag belongs to that tag: the search starts before an
+      ;; opening tag or after a closing one.
+      (when-let* ((beg (save-excursion
+                         (skip-chars-backward "^<>")
+                         (if (eq (char-before) ?<)
+                             (1- (point)))))
+                  (end (save-excursion
+                         (skip-chars-forward "^<>")
+                         (if (eq (char-after) ?>)
+                             (1+ (point))))))
+        (goto-char (if (eq ?/ (char-after (1+ beg)))
+                       end
+                     beg)))
+      ;; The search covers the whole buffer since modes like `html-mode' treat
+      ;; each tag as a defun, so defun bounds cannot limit it.
+      (hel-surround-4-bounds-at-point open close nil t t))))
+
 (defun hel-surround--remove (char)
   "For given CHAR according to `hel-surround-alist' `:remove' key return
 the list with 4 positions:

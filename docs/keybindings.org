@@ -322,16 +322,35 @@ commands like ~mark-word~ which use the word "mark" in this particular sense.
 
 - =ms= :: Surround selection.
 
-  Left brackets — =(=, =[=, ={= — add extra spaces around the surrounded region.
-  If the selection is linewise (make with =x=), the delimiters are placed on
-  separate lines.
+  - Left brackets — =(=, =[=, ={= — add extra spaces around the surrounded region.
+    If the selection is linewise (make with =x=), the delimiters are placed on
+    separate lines.
 
-  Right brackets — =)=, =]=, =}= — do the opposite: they remove all spaces or
-  newlines from the selection and are inserted tightly.
+  - Right brackets — =)=, =]=, =}= — do the opposite: they remove all spaces or
+    newlines from the selection and are inserted tightly.
 
 - =md= :: Delete surround.
 
 - =mr= :: Change (replace) surround.
+
+*** Surround with HTML/XML tag
+
+- =mst= :: Surround selection with HTML/XML tag.
+
+  Type ~div class="box"~​ and selection will be wraped in ~<div class="box">~
+  and ~</div>~.
+
+  With linewise selection (made with =x=) tags will be placed on the
+  separate lines.
+
+- =mdt= :: Ask for tag and delete it.
+
+  Type ~div~​ and enclosing ~<div class="box">~ and ~</div>~ tag will be deleted.
+
+  An empty input deletes the nearest enclosing tag.
+
+- =mrt= :: Replace one tag with another. An empty input means the nearest
+  enclosing tag.
 
 ** Search
 

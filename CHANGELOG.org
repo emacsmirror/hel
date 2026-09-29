@@ -1,3 +1,8 @@
+* [Unreleased]
+** Added
+
+- =mst=, =mdt=, =mrt= — surround functionality for XML/HTML tags.
+
 * [0.13.0]
 ** Added
 

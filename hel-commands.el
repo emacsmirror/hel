@@ -1613,7 +1613,7 @@ already there."
 
 ;; ms
 (hel-define-command hel-surround ()
-  "Enclose the active region with the chosen delimiters.
+  (format "Enclose the active region with the chosen delimiters.
 
 Left brackets — `(', `[', `{' — add extra spaces around the surrounded
 region. If the selection is linewise (made with \"x\"), the delimiters
@@ -1623,7 +1623,14 @@ Right brackets — `)', `]', `}' — do the opposite: they remove all
 spaces or newlines from the selection and are inserted tightly.
 
 For custom delimiters, the general rule is: if either delimiter
-contains a newline character, they are inserted on separate lines."
+contains a newline character, they are inserted on separate lines.
+
+%s -- surround selection with XML tag: type “div class=\"box\"”​ and
+selection will be wraped in <div class=\"box\"> and </div>.
+
+With linewise selection (made with %s) tags are placed on separate lines."
+          (propertize "m s t" 'face 'help-key-binding)
+          (propertize "x" 'face 'help-key-binding))
   :multiple-cursors t
   (interactive)
   (when-let* (((use-region-p))
@@ -1652,7 +1659,12 @@ contains a newline character, they are inserted on separate lines."
 
 ;; md
 (hel-define-command hel-surround-delete ()
-  "Delete surround."
+  (format "Delete surround.
+
+%s -- delete XML tag: type “div​” and enclosing <div class=\"box\">
+and </div> tag will be deleted. An empty input deletes the nearest
+enclosing tag."
+          (propertize "m d t" 'face 'help-key-binding))
   :multiple-cursors t
   (interactive)
   (when-let* ((key (read-char "Delete pair: " t))
@@ -1664,22 +1676,31 @@ contains a newline character, they are inserted on separate lines."
 
 ;; mr
 (hel-define-command hel-surround-change ()
-  "Change surround."
+  (format "Change surround.
+
+%s -- replace one XML tag with another. An empty tag name replaces
+the nearest enclosing tag."
+          (propertize "m r t" 'face 'help-key-binding))
   :multiple-cursors t
   (interactive)
-  (when-let* ((remove-key (read-char "Delete pair: " t))
-              (insert-key (read-char "Insert pair: " t))
-              (4-bounds (hel-surround--remove remove-key)))
-    (-let (((left-beg left-end right-beg right-end) 4-bounds)
-           ((left . right) (hel-surround--insert insert-key))
-           (deactivate-mark nil))
-      (hel-save-region
-        (delete-region right-beg right-end)
-        (goto-char right-beg)
-        (insert right)
-        (delete-region left-beg left-end)
-        (goto-char left-beg)
-        (insert left)))))
+  (let (4-bounds left right)
+    (pcase (read-char "Replace pair: " t)
+      (?t   (and (setq 4-bounds (-> (read-string "Replace tag: ")
+                                    (string-trim)
+                                    (hel-surround-4-bounds-of-html-tag-at-point)))
+                 (-setq (left . right) (hel-surround-read-tag "With tag: "))))
+      (char (and (setq 4-bounds (hel-surround--remove char))
+                 (-setq (left . right) (-> (read-char "With pair: " t)
+                                           (hel-surround--insert))))))
+    (-when-let ((left-beg left-end right-beg right-end) 4-bounds)
+      (let ((deactivate-mark nil))
+        (hel-save-region
+          (delete-region right-beg right-end)
+          (goto-char right-beg)
+          (insert right)
+          (delete-region left-beg left-end)
+          (goto-char left-beg)
+          (insert left))))))
 
 ;;; Window navigation
 

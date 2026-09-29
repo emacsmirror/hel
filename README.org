@@ -184,6 +184,8 @@ alternatives in Emacs.
 - When you search backward with =?= command, while hints are active =n= and =N= keys
   are swapped: =n= will repeat search backward and =N= — forward, like in Vim.
 
+- =mst=, =mdt=, =mrt= — surround functionality for XML/HTML tags.
+
 ** Undo
 *** Undo tree
 

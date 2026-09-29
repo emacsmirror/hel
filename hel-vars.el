@@ -388,7 +388,12 @@ then one cursor in the buffer.")
     (?\" :insert ("\"" . "\"")
          :remove (lambda ()
                    (-when-let ((beg . end) (hel-bounds-of-quoted-at-point ?\"))
-                     (list beg (1+ beg) (1- end) end)))))
+                     (list beg (1+ beg) (1- end) end))))
+    (?t :insert hel-surround-read-tag
+        :remove (lambda ()
+                  (-> (read-string "Delete tag: ")
+                      (string-trim)
+                      (hel-surround-4-bounds-of-html-tag-at-point)))))
   "Alist of (KEY . SPEC) elements for Hel surround functionality.
 
 This variable is buffer-local so that users can modify it from major-mode hooks.
